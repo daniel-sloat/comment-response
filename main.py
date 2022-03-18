@@ -16,6 +16,7 @@ import shared_strings
 # DEFINE REQUIRED INFORMATION
 # Specify filename (in current working directory) and sheet.
 COMMENT_RESPONSE_WORKBOOK_NAME = "45 Day_Hearing Day_Comments3.xlsx"
+# COMMENT_RESPONSE_SHEET actually refers to the sheet number ("sheet#"), not name //TODO
 COMMENT_RESPONSE_SHEET = "sheet1"
 # Specify relevant columns.
 COMMENT_COLUMN = "CommentText"
