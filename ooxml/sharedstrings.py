@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import pandas as pd
@@ -44,7 +44,6 @@ class RichText():
     def __create_code_dict(self) -> dict:
         df = self.__rich_strings_df()
         df["StyleString"] = df[["Style","String"]].values.tolist()
-        #df_strings = df_strings.drop(["Style","String"], axis=1)
         df = df.groupby(["Group"], as_index=False)["StyleString"].agg(list)
         df = df.groupby(["Group"])["StyleString"].agg(list)
         d = df.to_dict()

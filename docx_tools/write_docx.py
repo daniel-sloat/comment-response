@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import docx
@@ -31,9 +31,6 @@ def _create_styles(doc: docx.Document) -> None:
 
     _style_maker(doc,"Comments")
     _style_maker(doc,"Response",left_indent=0.5,next_style="Response")
-    _style_maker(doc,"AgencyResponse",
-                left_indent=0.5,space_after=2,
-                next_style="Response",keep_with_next=True)
 
 def _write_comments(
     doc: docx.Document,
@@ -44,15 +41,15 @@ def _write_comments(
             for section2_data, section2_name in section1_data:
                 doc.add_heading(section2_name, 2)
                 for section3_data, section3_name, section3_response in section2_data:
-                    if len(section3_data) > 1:
+                    multiple_cmts = len(section3_data) > 1
+                    if multiple_cmts:
                         plural_comments = "Multiple Comments:"
                     else:
                         plural_comments = "Comment:"
                     doc.add_heading(f"{plural_comments} {section3_name}", 3)
                     for comment in section3_data:
-                        paragraph = doc.add_paragraph()
-                        paragraph.style = "Comments"
-                        if len(section3_data) > 1:
+                        paragraph = doc.add_paragraph(style="Comments")
+                        if multiple_cmts:
                             paragraph.add_run("Comment", style="Run u")
                             paragraph.add_run(": ", style="Run ")
                         for para_no, para in enumerate(comment):
@@ -60,25 +57,20 @@ def _write_comments(
                                 for run in para:
                                     paragraph.add_run(run[1], style="Run " + run[0])                                                          
                             else:
-                                paragraph = doc.add_paragraph()
-                                paragraph.style = "Comments"
+                                paragraph = doc.add_paragraph(style="Comments")
                                 for run in para:
                                     paragraph.add_run(run[1], style="Run " + run[0])
-                    paragraph = doc.add_paragraph()
-                    paragraph.style = "AgencyResponse"
+                    paragraph = doc.add_paragraph(style="Response")
                     paragraph.add_run("Agency Response", style="Run biu")
                     paragraph.add_run(": ", style="Run ")
                     # Rich text response. There is only one response, so one less 
                     # level of iteration than comments.
                     for para_no, para in enumerate(section3_response):
-                        #paragraph = doc.add_paragraph()
-                        paragraph.style = "Response"
                         if para_no == 0:
                             for run in para:
                                 paragraph.add_run(run[1], style="Run " + run[0])                                                          
                         else:
-                            paragraph = doc.add_paragraph()
-                            paragraph.style = "Response"
+                            paragraph = doc.add_paragraph(style="Response")
                             for run in para:
                                 paragraph.add_run(run[1], style="Run " + run[0])
     return None
@@ -95,15 +87,16 @@ def _word_formats(
         formats = list(set(formats))
     for tag in formats:
         charstyle_font = styles.add_style("Run " + tag, WD_STYLE_TYPE.CHARACTER).font
-        for v in tag:
-            if v == "b": charstyle_font.bold = True
-            elif v == "i": charstyle_font.italic = True
-            elif v == "u": charstyle_font.underline = True
-            elif v == "w": charstyle_font.underline = WD_UNDERLINE.DOUBLE
-            elif v == "s": charstyle_font.strike = True
-            elif v == "z": charstyle_font.double_strike = True
-            elif v == "x": charstyle_font.superscript = True
-            elif v == "v": charstyle_font.subscript = True
+        for f in tag:
+            match f:
+                case "b": charstyle_font.bold = True
+                case "i": charstyle_font.italic = True
+                case "u": charstyle_font.underline = True
+                case "w": charstyle_font.underline = WD_UNDERLINE.DOUBLE
+                case "s": charstyle_font.strike = True
+                case "z": charstyle_font.double_strike = True
+                case "x": charstyle_font.superscript = True
+                case "v": charstyle_font.subscript = True
     return None          
 
 def commentsectiondoc(
@@ -114,8 +107,7 @@ def commentsectiondoc(
     print("Creating Comments and Response section document... ")
     doc = docx.Document()
     _create_styles(doc)
-    # Need to include default syles "u" and "biu" 
-    # because they are used to write text in word doc
+    # Need to include default styles "u" and "biu", used in word doc
     _word_formats(doc,formats,add_styles=["u","biu"])
     _write_comments(doc,nested_comment_responses)
     doc.save(savename)
@@ -126,10 +118,10 @@ def automarkdoc(
     entry_list: list,
     savename: str="AutoMark.docx"
 ) -> None:
+    # AutoMark document is document with two col table for automatically
+    # marking index entries in another document.
     print("Creating AutoMark document... ")
     def _write_table(doc,entry_list):
-        # AutoMark document is document with two col table for automatically
-        # marking index entries in another document.
         # Use table._cells to "pop" out the cells from the table, limiting 
         # the amount of calls to the table in the Word document (improving 
         # speed by multiple times). Updates Word document only after the 

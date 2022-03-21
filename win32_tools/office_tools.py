@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -43,6 +43,7 @@ def mark_index_entries(
         index = doc.Indexes
         index.AutoMarkEntries(automark_filepath)
         print("Index entries marked.")
+        return None
     
     def clean_index_entries(doc):
         docrng = doc.Content
@@ -56,6 +57,7 @@ def mark_index_entries(
             find.MatchWildcards = True # wildcard search
             find.Execute(Replace=2)
         print("Index entries cleaned.")
+        return None
     
     def append_index(doc):
         index = doc.Indexes
@@ -70,6 +72,7 @@ def mark_index_entries(
         index.Add(Range=docrng,NumberOfColumns=2)
         index.Format = 4
         print("Index appended to end of document.")
+        return None
 
     add_index_entries(doc,automark_filepath)
     clean_index_entries(doc)
@@ -77,3 +80,4 @@ def mark_index_entries(
     doc.Save()
     doc = None
     word.Application.Quit()
+    return None

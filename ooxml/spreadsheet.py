@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.10
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import zipfile
@@ -6,7 +6,7 @@ from lxml import etree
 import pandas as pd
 import numpy as np
 import re
-
+    
 class SpreadSheetML():
     """Uses the Open Office Spreadsheet standard to create simple dataframes
     and retrieve rich formatted text strings from .xlsx spreadsheets.
@@ -35,6 +35,10 @@ class SpreadSheetML():
         xml = self.unzipped.read("xl/sharedStrings.xml")
         return etree.XML(xml)
     
+    def __workbook_xml(self) -> etree.XML:
+        xml = self.unzipped.read("xl/workbook.xml")
+        return etree.XML(xml)
+    
     def __sheet_xml(self) -> etree.XML:
         xml = self.unzipped.read("xl/worksheets/" + self.sheetname + ".xml")
         return etree.XML(xml)
@@ -44,6 +48,7 @@ class SpreadSheetML():
     
     @staticmethod
     def __excel_col_name_to_number(col_index: str) -> int:
+        if not col_index.isalpha(): raise TypeError
         pow = 1
         col_num = 0
         for letter in reversed(col_index.upper()):
@@ -54,13 +59,10 @@ class SpreadSheetML():
     def __cell_code_value(self, column: etree.Element) -> str | int | float:
         # Default value for cell (default: NaN)
         code = np.nan
-        # If string in sharedStrings:
-        type_text = "t"
-        shared_string = "s"
-        inline_string = "inlineStr"
-        if type_text in column.attrib:
-            if column.attrib[type_text] == shared_string or \
-                column.attrib[type_text] == inline_string:
+        # If string in sharedStrings or is inlineStr:
+        if "t" in column.attrib:
+            if column.attrib["t"] == "s" or \
+                column.attrib["t"] == "inlineStr":
                 for value in column:
                     if self.__tag(value, "v"):
                         code = value.text
@@ -90,95 +92,122 @@ class SpreadSheetML():
         return sheet_grid_data
     
     @staticmethod
-    def __run_format(formatdict: dict) -> str:
+    def __create_formatdict(run_node: etree.Element) -> dict:
+        text_formats = run_node.xpath("./w:rPr/*", namespaces=SpreadSheetML.NAMESPACES)
+        formatdict = {}
+        for format in text_formats:
+            ftag = etree.QName(format).localname
+            fattrib = format.attrib
+            formatdict[ftag] = fattrib
+        return formatdict
+    
+    @staticmethod
+    def __run_format(run_node: etree.Element) -> str:
+        formatdict = SpreadSheetML.__create_formatdict(run_node)
         formats = ""
-        # Double-strikethrough does not exist in Excel. Strike + red text 
-        # is used to denote double-strikethrough
-        if "strike" in formatdict.keys():
-            if "color" in formatdict.keys():
-                if "rgb" in formatdict["color"].keys():
-                    if formatdict["color"]["rgb"] == "FFFF0000":
-                        formats += "z"
-            else:
-                formats += "s"
-        # All other formatting
         for k, v in formatdict.items():
-            if k == "b":
-                formats += "b"
-            if k == "i":
-                formats += "i"
-            if k == "u":
-                if "val" in v.keys():
-                    if v["val"] == "double":
+            match k: 
+                case "b": formats += "b"
+                case "i": formats += "i"
+                case "u":
+                    if "val" in v and "double" in v["val"]:
                         formats += "w"
-                else:
-                    formats += "u"
-            if k == "vertAlign":
-                if "val" in v.keys():
-                    if v["val"] == "superscript":
-                        formats += "x"
-                    if v["val"] == "subscript":
-                        formats += "v"
-        # Alphabetically sort string of formats
+                    else:
+                        formats += "u"
+                case "vertAlign":
+                    if "val" in v:
+                        if v["val"] == "superscript":
+                            formats += "x"
+                        if v["val"] == "subscript":
+                            formats += "v"
+                case "strike":
+                    # Double-strikethrough does not exist in Excel. Strike + red text 
+                    # is used to denote double-strikethrough
+                    if "color" in formatdict and "rgb" in formatdict["color"]:
+                        if formatdict["color"]["rgb"] == "FFFF0000":
+                            formats += "z"
+                    else:
+                        formats += "s"
+        # Sort string of formats
         formats_sorted = sorted(formats)
         formats = "".join(formats_sorted)
         return formats
     
     def __get_plain_ss(self) -> list:
         sharedstrings_plain = []
-        for group_no, parent in enumerate(self.__sharedstrings_xml()):
-            if self.__tag(parent, "si"):
-                for run in parent:
-                    text = run.xpath("string(.)",namespaces=self.NAMESPACES)
-                    sharedstrings_plain.append([group_no,text])
+        xml = self.__sharedstrings_xml()
+        groups = xml.xpath("/w:sst/w:si", namespaces=self.NAMESPACES)
+        for group in groups:
+            text = ""
+            for run in group:
+                text += run.xpath("string(.//text())",namespaces=self.NAMESPACES)
+            sharedstrings_plain.append(text)
         return sharedstrings_plain
+    
+    def __ss_dict(self) -> dict:
+        ss_plain = {}
+        xml = self.__sharedstrings_xml()
+        groups = xml.xpath("/w:sst/w:si", namespaces=self.NAMESPACES)
+        for group_no, group in enumerate(groups):
+            text = ""
+            for run in group:
+                text += run.xpath("string(.//text())",namespaces=self.NAMESPACES)
+            ss_plain[str(group_no)] = text
+        return ss_plain
     
     def get_rich_strings(self) -> pd.DataFrame:
         sharedstrings_rich = []
-        for group_no, parent in enumerate(self.__sharedstrings_xml()):
-            if self.__tag(parent, "si"):
-                for run in parent:
-                    if self.__tag(run, "t"):
-                        text = run.xpath("string(.)",namespaces=self.NAMESPACES)
-                        newline = False
-                        formats = ""
-                    elif not self.__tag(run, "t"):
-                        formats = ""
-                        for formatted_text_run in run:
-                            if self.__tag(formatted_text_run, "t"):
-                                text = formatted_text_run.text
-                            if self.__tag(formatted_text_run, "rPr"):
-                                formatdict = {}
-                                for format in formatted_text_run:
-                                    ftag = etree.QName(format).localname
-                                    fattrib = format.attrib
-                                    formatdict[ftag] = fattrib
-                                formats = self.__run_format(formatdict)
-                        # For determining paragraph breaks later
-                        newline = False        
-                        if text == None:
-                            text = ""
-                        if "\n" in text:
-                            newline = True
-                            text = text.removesuffix("\n")
-                    sharedstrings_rich.append([group_no,newline,formats,text])
+        xml = self.__sharedstrings_xml()
+        groups = xml.xpath("/w:sst/w:si", namespaces=self.NAMESPACES)
+        for group_no, group in enumerate(groups):
+            for run in group:
+                text = run.xpath("string(.)", namespaces=self.NAMESPACES)
+                formats = self.__run_format(run)
+                #//TODO Newline indicator may not be working
+                if "\n" in text:
+                    newline = True
+                    text = text.removesuffix("\n")
+                else:
+                    newline = False
+                sharedstrings_rich.append([group_no,newline,formats,text])
         return sharedstrings_rich
     
-    def to_dataframe(self) -> pd.DataFrame:
-        df_sharedstrings = pd.DataFrame(self.__get_plain_ss(), columns=["Group","String"])
-        sharedstrings = df_sharedstrings.groupby(["Group"])["String"].apply("".join)
-        
-        data_replaced = []
-        for data in self.__sheet_grid_data():
+    @staticmethod
+    def __replace_with_strings(
+        plain_ss: list,
+        sheet_grid_data: list
+    ) -> list:
+        for data in sheet_grid_data:
             # Values as strings are replaced by actual string.
-            if type(data[2]) == str:
-                data_replaced.append([data[0],data[1],sharedstrings[int(data[2])]])
-            else:
-                data_replaced.append(data)
-            
+            if isinstance(data[2], str):
+                data[2] = plain_ss[int(data[2])]
+        return sheet_grid_data
+    
+    @staticmethod
+    def __make_worksheet(grid_data: list) -> pd.DataFrame:
         columns=["Row","Column","Value"]
-        df_data = pd.DataFrame(data_replaced, columns=columns)
+        df = pd.DataFrame(grid_data, columns=columns)
+        df_worksheet = df.pivot(*columns).reset_index(drop=True)
+        # Make first row the header
+        header = df_worksheet.iloc[0]
+        df_worksheet = df_worksheet[1:]
+        df_worksheet.columns = header
+        df_worksheet = df_worksheet.reset_index(drop=True)
+        return df_worksheet
+    
+    def __get_headers(self) -> list:
+        headers = []
+        for data in self.__sheet_grid_data():
+            if data[0] == 0:
+                headers.append(data)
+        return headers
+    
+    def to_dataframe(self) -> pd.DataFrame:
+        #data_replaced = self.__replace_with_strings(self.__get_plain_ss(),self.__sheet_grid_data())
+        columns=["Row","Column","Value"]
+        df_data = pd.DataFrame(self.__sheet_grid_data(), columns=columns)
         df_worksheet = df_data.pivot(*columns).reset_index(drop=True)
+        df_worksheet = df_worksheet.replace(self.__ss_dict())
         # Make first row the header
         header = df_worksheet.iloc[0]
         df_worksheet = df_worksheet[1:]

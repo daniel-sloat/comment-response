@@ -1,23 +1,20 @@
-#!/usr/bin/env python3.10
+# #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-# Created from main.ipynb 2022-03-18
 
 import os
 import pandas as pd
 from IPython.display import display
 
 # Import other python module functions
-import create_document
-import office_tools
-import ooxml_ss
-import shared_strings
+import docx_tools
+import win32_tools
+import ooxml
 
 # DEFINE REQUIRED INFORMATION
 # Specify filename (in current working directory) and sheet.
-COMMENT_RESPONSE_WORKBOOK_NAME = "45 Day_Hearing Day_Comments3.xlsx"
-# COMMENT_RESPONSE_SHEET actually refers to the sheet number ("sheet#"), not name //TODO
-COMMENT_RESPONSE_SHEET = "sheet1"
+COMMENT_RESPONSE_XLSX_FILENAME = "45 Day_Hearing Day_Comments3.xlsx"
+# COMMENT_RESPONSE_SHEET_NUM actually refers to the sheet number ("sheet#"), not name //TODO
+COMMENT_RESPONSE_SHEET_NUM = "sheet1"
 # Specify relevant columns.
 COMMENT_COLUMN = "CommentText"
 RESPONSE_COLUMN = "draft Agency Response"
@@ -26,6 +23,11 @@ COMMENT_TAG_COLUMN = "File Name"
 LEVEL_1 = "FSOR section heading level 1"
 LEVEL_2 = "FSOR section heading level 2"
 LEVEL_3 = "FSOR section heading level 3"
+
+# Used for prefixing and suffixing comment tags. String is reversed for suffix.
+# Shouldn't need to be changed. Must be in [a-z] or [A-Z].
+TAG_PREFIX = "zyx"
+TAG_SUFFIX = TAG_PREFIX[::-1]
 
 def get_cwd_filepath(filename: str) -> str:
     cwd = os.getcwd()
@@ -38,8 +40,10 @@ def get_comment_index_tags(
 ) -> pd.Series:
     """Create comment index tags to be appended to the end of comments for identification.
     Once comment index tags are created and appended, can be used with AutoMark to create index.
+
     Args:
         df_worksheet (pd.DataFrame): Dataframe representation of worksheet.
+
     Returns:
         pd.Series: Comment index tags.
     """
@@ -47,7 +51,7 @@ def get_comment_index_tags(
     # Also covers files starting with ".", common on Unix.
     regex = r"(?P<filename>.+?)(?P<ext>\.[^.]*$|$)"
     # Prefix and suffix added in attempt to make sure only unique identifiers are marked.
-    replacement = "zyx" + r"\1" + "xyz"
+    replacement = TAG_PREFIX + r"\1" + TAG_SUFFIX
     comment_tags = df_worksheet[comment_tag_column].str.replace(regex,replacement,regex=True)
     comment_tags.name = "CommentTags"
     return comment_tags
@@ -57,9 +61,11 @@ def append_comment_tags(
     comment_tags: pd.Series
 ) -> list:
     """Appends tags to the end of each comment.
+
     Args:
         comment_column_list (list): Untagged comment list.
         comment_tags (pd.Series): Tags to append.
+
     Returns:
         list: Tagged comment list.
     """
@@ -79,6 +85,7 @@ def working_df(
     """A "working" dataframe that includes relevant columns
     for subsequent steps of combining and grouping to get
     into format suitable for writing docx file.
+
     Args:
         df_worksheet (pd.DataFrame): 
             DataFrame of plain sharedStrings.
@@ -86,6 +93,7 @@ def working_df(
             [Comment[Paragraph[Run[Format,RunText]]]]
         response_col (list): For rich text:
             [Response[Paragraph[Run[Format,RunText]]]]
+
     Returns:
         pd.DataFrame: Focused dataframe used for grouping.
     """
@@ -101,9 +109,11 @@ def working_df(
 def group_comments(df: pd.DataFrame) -> pd.DataFrame:
     """Group comments at lowest-level of hierarchy. Counts
     the number of comments in the group.
+
     Args:
         df (pd.DataFrame): Relevant dataframe (grouping columns, 
         comment column)
+
     Returns:
         pd.DataFrame: Grouped at lowest-level hierarchy with 
         comment count.
@@ -111,20 +121,18 @@ def group_comments(df: pd.DataFrame) -> pd.DataFrame:
     df_group = df.groupby([LEVEL_1,LEVEL_2,LEVEL_3],dropna=False)
     comments_grouped = df_group[COMMENT_COLUMN].apply(list)
     comment_count = df_group[COMMENT_COLUMN].count().rename("CommentCount")
-    comments_with_count = pd.merge(
-        comments_grouped,
-        comment_count,
-        left_index=True,
-        right_index=True
-        )
+    comments_with_count = pd.merge(comments_grouped,comment_count,
+                                   left_index=True,right_index=True)
     return comments_with_count
 
 def find_responses(df: pd.DataFrame) -> pd.DataFrame:
     """Groups at lowest-level of hierarchy, and takes first
     entry as response. Counts the number of responses.
+
     Args:
         df (pd.DataFrame): Relevant dataframe (grouping columns, 
         response column)
+
     Returns:
         pd.DataFrame: Grouped at lowest-level hierarchy with 
         response count.
@@ -134,28 +142,26 @@ def find_responses(df: pd.DataFrame) -> pd.DataFrame:
     # Comment groups with no response will not be an iterable list (NoneType). 
     # Replace with empty run list: [Response[Para[Run]]]
     responses = responses.apply(
-        lambda x: x if isinstance(x, list) else [[["",""]]])
-    response_count = df_group[RESPONSE_COLUMN].count().rename("ResponseCount")
-    responses_with_count = pd.merge(
-        responses,
-        response_count,
-        left_index=True,
-        right_index=True
+        lambda x: x if isinstance(x, list) else [[["",""]]]
         )
+    response_count = df_group[RESPONSE_COLUMN].count().rename("ResponseCount")
+    responses_with_count = pd.merge(responses,response_count,
+                                    left_index=True,right_index=True)
     return responses_with_count
 
 def check_response_count(responses_with_count: pd.DataFrame) -> None:
     """Raises message regarding number of responses. If number
     of responses != 1, show error message.
+
     Args:
         responses_with_count (pd.DataFrame): Grouped with 
         response count.
     """
     count = responses_with_count["ResponseCount"]
     if count.max() > 1:
-        print("ERROR: More than one response per comment group detected. "
+        print("ERROR: More than one response for at least one comment group detected. "
               + "Keeping only the first response (which may not be desired).")
-    elif count.min() < 1:
+    if count.min() < 1:
         print("WARNING: No response for at least one comment group detected. "
               + "Empty response inserted.")
 
@@ -165,19 +171,18 @@ def combine_and_sort_comments_and_responses(
 ) -> pd.DataFrame:
     """Merges and sorts comments and responses for
     grouping.
+
     Args:
         comments_with_count (pd.DataFrame): Grouped with count.
         responses_with_count (pd.DataFrame): Grouped with count.
+
     Returns:
         pd.DataFrame: Combined dataframe, sorted alphabetically
         except comments are sorted by descending.
     """
-    section_grouping = pd.merge(
-        comments_with_count,
-        responses_with_count,
-        left_index=True,
-        right_index=True
-        ).reset_index()
+    section_grouping = pd.merge(comments_with_count,responses_with_count,
+                                left_index=True,right_index=True
+                                ).reset_index()
     section_grouping = section_grouping.sort_values(
         by=[LEVEL_1,LEVEL_2,LEVEL_3,"CommentCount"], 
         ascending=[True,True,True,False], 
@@ -185,60 +190,68 @@ def combine_and_sort_comments_and_responses(
         ).reset_index(drop=True)
     return section_grouping
 
-def level3_group(df: pd.DataFrame) -> pd.DataFrame:
-    # Groups the lowest-level heading (e.g., Heading 3)
-    # Comments and responses are already grouped and merged.
-    # Provides data combination for further grouping steps.
-    df["Comments_Level3"] = list(zip(
-        df[COMMENT_COLUMN],
-        df[LEVEL_3],
-        df[RESPONSE_COLUMN]
-        ))
+def group_by_level(df: pd.DataFrame) -> pd.DataFrame:
+    LEVEL_3_DATA = "Level3Data"
+    LEVEL_2_DATA = "Level2Data"
+    LEVEL_1_DATA = "Level1Data"   
+    
+    def level3_group(df: pd.DataFrame) -> pd.DataFrame:
+        # Groups the lowest-level heading (e.g., Heading 3)
+        # Comments and responses at this level are already grouped and merged.
+        # Provides data combination for further grouping steps.
+        df[LEVEL_3_DATA] = list(zip(
+            df[COMMENT_COLUMN],df[LEVEL_3],df[RESPONSE_COLUMN]))
+        return df
+    
+    def level2_group(df: pd.DataFrame) -> pd.DataFrame:
+        df_group = df.groupby([LEVEL_1,LEVEL_2])
+        comments_level_2 = df_group[LEVEL_3_DATA].apply(list)
+        df_comments_level_2 = pd.DataFrame(comments_level_2).reset_index()
+        df_comments_level_2[LEVEL_2_DATA] = list(zip(
+            df_comments_level_2[LEVEL_3_DATA],
+            df_comments_level_2[LEVEL_2]
+            ))
+        df_comments_level_2 = df_comments_level_2.drop(
+            [LEVEL_2,LEVEL_3_DATA], axis=1)
+        return df_comments_level_2
+    
+    def level1_group(df: pd.DataFrame) -> pd.DataFrame:
+        df_group = df.groupby([LEVEL_1])
+        comments_level_1 = df_group[LEVEL_2_DATA].apply(list)
+        df_comments_level_1 = pd.DataFrame(comments_level_1).reset_index()
+        df_comments_level_1[LEVEL_1_DATA] = list(zip(
+            df_comments_level_1[LEVEL_2_DATA],
+            df_comments_level_1[LEVEL_1]
+            ))
+        df_comments_level_1 = df_comments_level_1[LEVEL_1_DATA]
+        return df_comments_level_1
+    
+    df = level3_group(df)
+    df = level2_group(df)
+    df = level1_group(df)
     return df
-
-def level2_group(df: pd.DataFrame) -> pd.DataFrame:
-    df_group = df.groupby([LEVEL_1,LEVEL_2])
-    comments_level_2 = df_group["Comments_Level3"].apply(list)
-    df_comments_level_2 = pd.DataFrame(comments_level_2).reset_index()
-    df_comments_level_2["Comments_Level2"] = list(zip(
-        df_comments_level_2["Comments_Level3"],
-        df_comments_level_2[LEVEL_2]
-        ))
-    df_comments_level_2 = df_comments_level_2.drop(
-        [LEVEL_2,"Comments_Level3"], axis=1)
-    return df_comments_level_2
-
-def level1_group(df: pd.DataFrame) -> pd.DataFrame:
-    df_group = df.groupby([LEVEL_1])
-    comments_level_1 = df_group["Comments_Level2"].apply(list)
-    df_comments_level_1 = pd.DataFrame(comments_level_1).reset_index()
-    df_comments_level_1["Comments_Level1"] = list(zip(
-        df_comments_level_1["Comments_Level2"],
-        df_comments_level_1[LEVEL_1]
-        ))
-    df_comments_level_1 = df_comments_level_1["Comments_Level1"]
-    return df_comments_level_1
 
 def mark_index_entries(comment_tags: list) -> None:
     """Mark index entries by creating AutoMark document
     and opening Word and marking entries, and adding
     index.
+
     Args:
         comment_tags (list): Comment tags to index.
     """
-    regex = r"^zyx((\d+?)-(.+?))xyz$"
+    regex = f"^{TAG_PREFIX}((\d+?)-(.+?)){TAG_SUFFIX}$"
     index_entry = comment_tags.replace(regex,r"\1",regex=True)
     automark_list = list(zip(comment_tags,index_entry))
-    create_document.automarkdoc(automark_list)
+    docx_tools.automarkdoc(automark_list)
     # office_tools requires Office to be installed.
-    office_tools.mark_index_entries(add_index=True)
+    win32_tools.mark_index_entries(add_index=True)
     return None
 
 def main():
     # Read ooxml file and retrieve relevant data
-    filepath = get_cwd_filepath(COMMENT_RESPONSE_WORKBOOK_NAME)
-    ooxml_file = ooxml_ss.SpreadSheetML(filepath)
-    sheet = ooxml_file.sheet(COMMENT_RESPONSE_SHEET)
+    filepath = get_cwd_filepath(COMMENT_RESPONSE_XLSX_FILENAME)
+    ooxml_file = ooxml.SpreadSheetML(filepath)
+    sheet = ooxml_file.sheet(COMMENT_RESPONSE_SHEET_NUM)
     coded_sheet = sheet.to_dataframe_codes()
     sharedstrings_rich = sheet.get_rich_strings()
     df_worksheet = sheet.to_dataframe()
@@ -248,8 +261,8 @@ def main():
     # Get comment index tags
     comment_tags = get_comment_index_tags(df_worksheet,COMMENT_TAG_COLUMN)
     # Decode comment and response columns
-    comment_code_data = shared_strings.RichText(sharedstrings_rich,comment_codes)
-    response_code_data = shared_strings.RichText(sharedstrings_rich,response_codes)
+    comment_code_data = ooxml.RichText(sharedstrings_rich,comment_codes)
+    response_code_data = ooxml.RichText(sharedstrings_rich,response_codes)
     formats = list(set(comment_code_data.formats_used()
                        + response_code_data.formats_used()))
     comment_column_list = comment_code_data.decode()
@@ -265,28 +278,13 @@ def main():
     check_response_count(responses_with_count)
     # Group headings, comments, and responses into multi-level list
     section_grouping = combine_and_sort_comments_and_responses(comments_with_count,responses_with_count)
-    section_grouping = level3_group(section_grouping)
-    section_grouping = level2_group(section_grouping)
-    section_grouping = level1_group(section_grouping)
+    section_grouping = group_by_level(section_grouping)
     grouped_comment_and_response_list = section_grouping.to_list()
     # Create comment response document and mark index entries
-    create_document.commentsectiondoc(grouped_comment_and_response_list,formats)
+    docx_tools.commentsectiondoc(grouped_comment_and_response_list,formats)
     mark_index_entries(comment_tags)
     return None
 
 if __name__ == "__main__":
     main()
     pass
-
-# Explore grouped comment and response list tree
-#display(grouped_comment_and_response_list)
-#display(grouped_comment_and_response_list[0])                # DATA & TITLE IN SECTION 1
-#display(grouped_comment_and_response_list[0][0])             # SECTION 1 DATA
-#display(grouped_comment_and_response_list[0][1])             # SECTION 1 TITLE
-#display(grouped_comment_and_response_list[1][0][0])          # DATA & TITLE IN SECTION 2
-#display(grouped_comment_and_response_list[0][0][0][0])       # SECTION 2 DATA
-#display(grouped_comment_and_response_list[0][0][0][1])       # SECTION 2 TITLE
-#display(grouped_comment_and_response_list[0][0][0][0][0])    # DATA & TITLE IN SECTION 3
-#display(grouped_comment_and_response_list[0][0][0][0][0][0]) # SECTION 3 DATA
-#display(grouped_comment_and_response_list[0][0][0][0][0][1]) # SECTION 3 TITLE
-#display(grouped_comment_and_response_list[0][0][0][0][0][2]) # SECTION 3 RESPONSE
