@@ -85,7 +85,7 @@ def mark_index_entries(
 
 def remove_line_breaks(doc):
     docrng = doc.Content
-    m = {r"^l": r"^p"}
+    m = {r"^l^l": r"^l", r"^l": r"^p", r"^p^p": r"^p"}
     for key, value in m.items():
         find = docrng.Find
         find.Text = key
