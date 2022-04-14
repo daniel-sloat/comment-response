@@ -163,13 +163,7 @@ class SpreadSheetML():
             for run in group:
                 text = run.xpath("string(.)", namespaces=self.NAMESPACES)
                 formats = self.__run_format(run)
-                #//TODO Newline indicator may not be working
-                if "\n" in text:
-                    newline = True
-                    text = text.removesuffix("\n")
-                else:
-                    newline = False
-                sharedstrings_rich.append([group_no,newline,formats,text])
+                sharedstrings_rich.append((group_no,formats,text))
         return sharedstrings_rich
     
     @staticmethod

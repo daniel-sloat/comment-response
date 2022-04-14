@@ -5,6 +5,7 @@
 # %%
 from pathlib import Path
 import pandas as pd
+#from IPython.display import display
 
 # %%
 # Import other python module functions
@@ -15,17 +16,20 @@ import ooxml
 # %%
 # DEFINE REQUIRED INFORMATION
 # Specify filename (in current working directory) and sheet.
-COMMENT_RESPONSE_XLSX_FILENAME = "Comment-Response.xlsx"
+COMMENT_RESPONSE_XLSX_FILENAME = "Alex_45 Day_Comments_Ref.xlsx"
 # COMMENT_RESPONSE_SHEET_NUM actually refers to the sheet number ("sheet#"), not name //TODO
 COMMENT_RESPONSE_SHEET_NUM = "sheet1"
 # Specify relevant columns.
-COMMENT_COLUMN = "Comment"
-RESPONSE_COLUMN = "Response"
+COMMENT_COLUMN = "CommentText"
+RESPONSE_COLUMN = "draft Agency Response"
+BATCH_STATUS_COLUMN = "Batch status"
+RESPONSE_STATUS_COLUMN = "response status"
+RESPONSE_NOTES_COLUMN = "response notes & questions"
 # Column used to create index comment codes.
-COMMENT_TAG_COLUMN = "Tag"
-LEVEL_1 = "Heading 1"
-LEVEL_2 = "Heading 2"
-LEVEL_3 = "Heading 3"
+COMMENT_TAG_COLUMN = "File Name"
+LEVEL_1 = "FSOR section heading level 1"
+LEVEL_2 = "FSOR section heading level 2"
+LEVEL_3 = "FSOR section heading level 3"
 
 # %%
 # Used for prefixing and suffixing comment tags. String is reversed for suffix.
@@ -102,7 +106,9 @@ def working_df(
     Returns:
         pd.DataFrame: Focused dataframe used for grouping.
     """
-    df_sheet = df_worksheet[[LEVEL_1,LEVEL_2,LEVEL_3]].copy()
+    df_sheet = df_worksheet[[LEVEL_1,LEVEL_2,LEVEL_3,
+                             BATCH_STATUS_COLUMN,RESPONSE_STATUS_COLUMN,RESPONSE_NOTES_COLUMN
+                             ]].copy()
     df_sheet[COMMENT_COLUMN] = comment_col
     df_sheet[RESPONSE_COLUMN] = response_col
     df_sheet = df_sheet.sort_values(
@@ -158,6 +164,25 @@ def find_responses(df: pd.DataFrame) -> pd.DataFrame:
     return responses_with_count
 
 # %%
+def find_response_metadata(df: pd.DataFrame) -> pd.DataFrame:
+    """Groups at lowest-level of hierarchy, and takes first
+    entries of metadata columns for tracking.
+
+    Args:
+        df (pd.DataFrame): Relevant dataframe
+
+    Returns:
+        pd.DataFrame: Grouped at lowest-level hierarchy
+    """
+    df_group = df.groupby([LEVEL_1,LEVEL_2,LEVEL_3],dropna=False)
+    batch_status = df_group[BATCH_STATUS_COLUMN].first().fillna("No batch status")
+    response_status = df_group[RESPONSE_STATUS_COLUMN].first().fillna("No response status")
+    response_notes = df_group[RESPONSE_NOTES_COLUMN].first().fillna("No response notes")
+    metadata = r"{{{ " + batch_status + " - " + response_status + " - " + response_notes + r" }}}"
+    metadata.name = "Metadata"
+    return metadata
+
+# %%
 def check_response_count(responses_with_count: pd.DataFrame) -> None:
     """Raises message regarding number of responses. If number
     of responses != 1, show error message.
@@ -177,7 +202,8 @@ def check_response_count(responses_with_count: pd.DataFrame) -> None:
 # %%
 def combine_and_sort_comments_and_responses(
     comments_with_count: pd.DataFrame,
-    responses_with_count: pd.DataFrame
+    responses_with_count: pd.DataFrame,
+    metadata: pd.DataFrame
 ) -> pd.DataFrame:
     """Merges and sorts comments and responses for
     grouping.
@@ -192,10 +218,13 @@ def combine_and_sort_comments_and_responses(
     """
     section_grouping = pd.merge(comments_with_count,responses_with_count,
                                 left_index=True,right_index=True
+                                )
+    section_grouping = pd.merge(section_grouping,metadata,
+                                left_index=True,right_index=True
                                 ).reset_index()
     section_grouping = section_grouping.sort_values(
-        by=[LEVEL_1,LEVEL_2,LEVEL_3,"CommentCount"], 
-        ascending=[True,True,True,False], 
+        by=[LEVEL_1,LEVEL_2,"CommentCount",LEVEL_3], 
+        ascending=[True,True,False,True], 
         na_position="first"
         ).reset_index(drop=True)
     return section_grouping
@@ -210,8 +239,10 @@ def group_by_level(df: pd.DataFrame) -> pd.DataFrame:
         # Groups the lowest-level heading (e.g., Heading 3)
         # Comments and responses at this level are already grouped and merged.
         # Provides data combination for further grouping steps.
+        df[LEVEL_3] = df[LEVEL_3].fillna("Blank")
         df[LEVEL_3_DATA] = tuple(zip(
-            df[COMMENT_COLUMN],df[LEVEL_3],df[RESPONSE_COLUMN]))
+            df[COMMENT_COLUMN],df[LEVEL_3],df[RESPONSE_COLUMN],df["Metadata"]
+            ))
         return df
     
     def level2_group(df: pd.DataFrame) -> pd.DataFrame:
@@ -266,8 +297,12 @@ def main():
     ooxml_file = ooxml.SpreadSheetML(filepath)
     sheet = ooxml_file.sheet(COMMENT_RESPONSE_SHEET_NUM)
     coded_sheet = sheet.to_dataframe_codes()
+    # Remove empty comment rows. All rows should have a comment associated with it.
+    remove_empty_comment_rows = coded_sheet[COMMENT_COLUMN].notna()
+    coded_sheet = coded_sheet[remove_empty_comment_rows]
     sharedstrings_rich = sheet.get_rich_strings()
     df_worksheet = sheet.to_dataframe()
+    df_worksheet = df_worksheet[remove_empty_comment_rows]
     # Get coded comment and response columns
     comment_codes = coded_sheet[COMMENT_COLUMN]
     response_codes = coded_sheet[RESPONSE_COLUMN]
@@ -287,14 +322,15 @@ def main():
     # Initial group of comments and responses
     comments_with_count = group_comments(df_working)
     responses_with_count = find_responses(df_working)
+    metadata = find_response_metadata(df_working)
     # Error check for number of responses
     check_response_count(responses_with_count)
     # Group headings, comments, and responses into multi-level list
-    section_grouping = combine_and_sort_comments_and_responses(comments_with_count,responses_with_count)
+    section_grouping = combine_and_sort_comments_and_responses(comments_with_count,responses_with_count,metadata)
     section_grouping = group_by_level(section_grouping)
     grouped_comment_and_response_list = tuple(section_grouping)
     # Create comment response document and mark index entries
-    docx_tools.commentsectiondoc(grouped_comment_and_response_list,formats,levels=2)
+    docx_tools.commentsectiondoc(grouped_comment_and_response_list,formats,levels=3)
     mark_index_entries(comment_tags)
     return None
 
@@ -302,21 +338,5 @@ def main():
 if __name__ == "__main__":
     main()
     pass
-
-# %%
-# Explore grouped comment and response list tree
-#display(grouped_comment_and_response_list)
-#display(grouped_comment_and_response_list[0])                # DATA & TITLE IN SECTION 1
-#display(grouped_comment_and_response_list[0][0])             # SECTION 1 DATA
-#display(grouped_comment_and_response_list[0][1])             # SECTION 1 TITLE
-
-#display(grouped_comment_and_response_list[1][0][0])          # DATA & TITLE IN SECTION 2
-#display(grouped_comment_and_response_list[0][0][0][0])       # SECTION 2 DATA
-#display(grouped_comment_and_response_list[0][0][0][1])       # SECTION 2 TITLE
-
-#display(grouped_comment_and_response_list[0][0][0][0][0])    # DATA, TITLE, AND RESPONSE IN SECTION 3
-#display(grouped_comment_and_response_list[0][0][0][0][0][0]) # SECTION 3 DATA
-#display(grouped_comment_and_response_list[0][0][0][0][0][1]) # SECTION 3 TITLE
-#display(grouped_comment_and_response_list[0][0][0][0][0][2]) # SECTION 3 RESPONSE
 
 

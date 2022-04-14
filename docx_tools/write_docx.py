@@ -32,15 +32,17 @@ def _create_styles(doc: docx.Document) -> None:
     _style_maker(doc,"Comments")
     _style_maker(doc,"Response",left_indent=0.5,next_style="Response")
 
-def _write_comments(
+def _write_comments_two_levels(
     doc: docx.Document,
     nested_comment_responses: list
 ) -> None:
+    # Strictly for hierarchies of only two levels ("Heading 1", "Heading 2")
     for section1_data, section1_name in nested_comment_responses:
             doc.add_heading(section1_name, 1)
             for section2_data, section2_name in section1_data:
                 doc.add_heading(section2_name, 2)
                 for section3_data, section3_name, section3_response in section2_data:
+                    # COMMENTS
                     multiple_cmts = len(section3_data) > 1
                     if multiple_cmts:
                         plural_comments = "Multiple Comments:"
@@ -60,11 +62,63 @@ def _write_comments(
                                 paragraph = doc.add_paragraph(style="Comments")
                                 for run in para:
                                     paragraph.add_run(run[1], style="Run " + run[0])
+                    # RESPONSE
+                    # Only one response, so one less level of iteration than comments.
                     paragraph = doc.add_paragraph(style="Response")
                     paragraph.add_run("Agency Response", style="Run biu")
                     paragraph.add_run(": ", style="Run ")
-                    # Rich text response. There is only one response, so one less 
-                    # level of iteration than comments.
+                    for para_no, para in enumerate(section3_response):
+                        if para_no == 0:
+                            for run in para:
+                                paragraph.add_run(run[1], style="Run " + run[0])                                                          
+                        else:
+                            paragraph = doc.add_paragraph(style="Response")
+                            for run in para:
+                                paragraph.add_run(run[1], style="Run " + run[0])
+    return None
+
+def _write_comments_two_or_three_levels(
+    doc: docx.Document,
+    nested_comment_responses: list
+) -> None:
+    # For either two or three levels of hierarchy. 
+    for section1_data, section1_name in nested_comment_responses:
+            doc.add_heading(section1_name, 1)
+            for section2_data, section2_name in section1_data:
+                if section2_data[0][1] != "Blank":
+                    doc.add_heading(section2_name, 2)
+                for section3_data, section3_name, section3_response, section3_code in section2_data:
+                    multiple_cmts = len(section3_data) > 1
+                    if multiple_cmts:
+                        plural_comments = "Multiple Comments:"
+                    else:
+                        plural_comments = "Comment:"
+                    if section3_name == "Blank":
+                        doc.add_heading(f"{plural_comments} {section2_name}", 2)
+                    else:
+                        doc.add_heading(f"{plural_comments} {section3_name}", 3)
+                    # COMMENTS
+                    for comment in section3_data:
+                        paragraph = doc.add_paragraph(style="Comments")
+                        if multiple_cmts:
+                            paragraph.add_run("Comment", style="Run u")
+                            paragraph.add_run(": ", style="Run ")
+                        for para_no, para in enumerate(comment):
+                            if para_no == 0:
+                                for run in para:
+                                    paragraph.add_run(run[1], style="Run " + run[0])                                                          
+                            else:
+                                paragraph = doc.add_paragraph(style="Comments")
+                                for run in para:
+                                    paragraph.add_run(run[1], style="Run " + run[0])
+                    # CODE
+                    paragraph = doc.add_paragraph(style="Response")
+                    paragraph.add_run(section3_code, style="Run i")
+                    # RESPONSE
+                    # Only one response, so one less level of iteration than comments.
+                    paragraph = doc.add_paragraph(style="Response")
+                    paragraph.add_run("Agency Response", style="Run biu")
+                    paragraph.add_run(": ", style="Run ")
                     for para_no, para in enumerate(section3_response):
                         if para_no == 0:
                             for run in para:
@@ -102,14 +156,18 @@ def _word_formats(
 def commentsectiondoc(
     nested_comment_responses: list,
     formats: list[str],
+    levels: int=2,
     savename: str="CommentResponseSection.docx"
 ) -> None:
     print("Creating Comments and Response section document... ")
     doc = docx.Document()
     _create_styles(doc)
     # Need to include default styles "u" and "biu", used in word doc
-    _word_formats(doc,formats,add_styles=["u","biu"])
-    _write_comments(doc,nested_comment_responses)
+    _word_formats(doc,formats,add_styles=["i","u","biu"])
+    if levels <=2:
+        _write_comments_two_levels(doc,nested_comment_responses)
+    else:
+        _write_comments_two_or_three_levels(doc,nested_comment_responses)
     doc.save(savename)
     print("Comments and response section document created: " + savename)
     return None
@@ -132,7 +190,6 @@ def automarkdoc(
         for i in range(len(entry_list)):
             for j in range(len(entry_list[i])):
                 table_cells[j + i * 2].text = str(entry_list[i][j])
-
     doc = docx.Document()
     _write_table(doc,entry_list)
     doc.save(savename)

@@ -57,6 +57,7 @@ def mark_index_entries(
             find.MatchWildcards = True # wildcard search
             find.Execute(Replace=2)
         print("Index entries cleaned.")
+        remove_line_breaks(doc)
         return None
     
     def append_index(doc):
@@ -80,4 +81,18 @@ def mark_index_entries(
     doc.Save()
     doc = None
     word.Application.Quit()
+    return None
+
+def remove_line_breaks(doc):
+    docrng = doc.Content
+    m = {r"^l": r"^p"}
+    for key, value in m.items():
+        find = docrng.Find
+        find.Text = key
+        find.Replacement.Text = value
+        find.Wrap = 1
+        find.Forward = True
+        find.MatchWildcards = False
+        find.Execute(Replace=2)
+    print("Line breaks replaced with paragraph breaks.")
     return None
