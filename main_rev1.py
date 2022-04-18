@@ -38,10 +38,6 @@ TAG_PREFIX = "zyx"
 TAG_SUFFIX = TAG_PREFIX[::-1]
 
 # %%
-def get_cwd_filepath(filename: str) -> Path:
-    return Path().cwd() / filename
-
-# %%
 def get_comment_index_tags(
     df_worksheet: pd.DataFrame, 
     comment_tag_column: str
@@ -216,6 +212,7 @@ def combine_and_sort_comments_and_responses(
         pd.DataFrame: Combined dataframe, sorted alphabetically
         except comments are sorted by descending.
     """
+    # //TODO Merge this function with group_by_level. Put in level_3_group function
     section_grouping = pd.merge(comments_with_count,responses_with_count,
                                 left_index=True,right_index=True
                                 )
@@ -239,6 +236,7 @@ def group_by_level(df: pd.DataFrame) -> pd.DataFrame:
         # Groups the lowest-level heading (e.g., Heading 3)
         # Comments and responses at this level are already grouped and merged.
         # Provides data combination for further grouping steps.
+        # //TODO Merge this with combine_and_sort_comments_and_responses function.
         df[LEVEL_3] = df[LEVEL_3].fillna("Blank")
         df[LEVEL_3_DATA] = tuple(zip(
             df[COMMENT_COLUMN],df[LEVEL_3],df[RESPONSE_COLUMN],df["Metadata"]
@@ -248,7 +246,14 @@ def group_by_level(df: pd.DataFrame) -> pd.DataFrame:
     def level2_group(df: pd.DataFrame) -> pd.DataFrame:
         df_group = df.groupby([LEVEL_1,LEVEL_2])
         comments_level_2 = df_group[LEVEL_3_DATA].apply(tuple)
-        df_comments_level_2 = pd.DataFrame(comments_level_2).reset_index()
+        comment_count = df_group["CommentCount"].first()
+        df_comments_level_2 = pd.merge(comments_level_2,comment_count,
+                                       left_index=True,right_index=True
+                                       ).reset_index()
+        df_comments_level_2 = df_comments_level_2.sort_values(
+            by=[LEVEL_1,"CommentCount",LEVEL_2], 
+            ascending=[True,False,True],
+            ).reset_index(drop=True)
         df_comments_level_2[LEVEL_2_DATA] = tuple(zip(
             df_comments_level_2[LEVEL_3_DATA],
             df_comments_level_2[LEVEL_2]
@@ -338,5 +343,8 @@ def main():
 if __name__ == "__main__":
     main()
     pass
+
+# %%
+
 
 
