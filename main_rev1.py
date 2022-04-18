@@ -220,8 +220,8 @@ def combine_and_sort_comments_and_responses(
                                 left_index=True,right_index=True
                                 ).reset_index()
     section_grouping = section_grouping.sort_values(
-        by=[LEVEL_1,LEVEL_2,"CommentCount",LEVEL_3], 
-        ascending=[True,True,False,True], 
+        by=[LEVEL_1,LEVEL_2,LEVEL_3], 
+        ascending=[True,True,True], 
         na_position="first"
         ).reset_index(drop=True)
     return section_grouping
@@ -246,14 +246,15 @@ def group_by_level(df: pd.DataFrame) -> pd.DataFrame:
     def level2_group(df: pd.DataFrame) -> pd.DataFrame:
         df_group = df.groupby([LEVEL_1,LEVEL_2])
         comments_level_2 = df_group[LEVEL_3_DATA].apply(tuple)
-        comment_count = df_group["CommentCount"].first()
-        df_comments_level_2 = pd.merge(comments_level_2,comment_count,
-                                       left_index=True,right_index=True
-                                       ).reset_index()
-        df_comments_level_2 = df_comments_level_2.sort_values(
-            by=[LEVEL_1,"CommentCount",LEVEL_2], 
-            ascending=[True,False,True],
-            ).reset_index(drop=True)
+        df_comments_level_2 = pd.DataFrame(comments_level_2).reset_index()
+        #comment_count = df_group["CommentCount"].first()
+        #df_comments_level_2 = pd.merge(comments_level_2,comment_count,
+        #                               left_index=True,right_index=True
+        #                               ).reset_index()
+        #df_comments_level_2 = df_comments_level_2.sort_values(
+        #    by=[LEVEL_1,"CommentCount",LEVEL_2], 
+        #    ascending=[True,False,True],
+        #    ).reset_index(drop=True)
         df_comments_level_2[LEVEL_2_DATA] = tuple(zip(
             df_comments_level_2[LEVEL_3_DATA],
             df_comments_level_2[LEVEL_2]
