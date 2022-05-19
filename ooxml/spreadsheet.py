@@ -107,8 +107,10 @@ class SpreadSheetML():
         formats = ""
         for k, v in formatdict.items():
             match k: 
-                case "b": formats += "b"
-                case "i": formats += "i"
+                case "b": 
+                    formats += "b"
+                case "i": 
+                    formats += "i"
                 case "u":
                     if "val" in v and "double" in v["val"]:
                         formats += "w"

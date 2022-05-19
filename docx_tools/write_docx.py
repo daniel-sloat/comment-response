@@ -87,7 +87,7 @@ def _write_comments_two_or_three_levels(
             for section2_data, section2_name in section1_data:
                 if section2_data[0][1] != "Blank":
                     doc.add_heading(section2_name, 2)
-                for section3_data, section3_name, section3_response, section3_code in section2_data:
+                for section3_data, section3_name, section3_response in section2_data:
                     multiple_cmts = len(section3_data) > 1
                     if multiple_cmts:
                         plural_comments = "Multiple Comments:"
@@ -111,9 +111,6 @@ def _write_comments_two_or_three_levels(
                                 paragraph = doc.add_paragraph(style="Comments")
                                 for run in para:
                                     paragraph.add_run(run[1], style="Run " + run[0])
-                    # CODE
-                    paragraph = doc.add_paragraph(style="Response")
-                    paragraph.add_run(section3_code, style="Run i")
                     # RESPONSE
                     # Only one response, so one less level of iteration than comments.
                     paragraph = doc.add_paragraph(style="Response")
