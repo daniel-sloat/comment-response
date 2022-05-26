@@ -29,8 +29,8 @@ def dispatch_office_app(app: str) -> win32.gencache.EnsureDispatch:
     return office_app
 
 def mark_index_entries(
-    filename: str="CommentResponseSection.docx",
-    automark: str="AutoMark.docx",
+    filename: str="output\CommentResponseSection.docx",
+    automark: str="output\AutoMark.docx",
     add_index: bool=False
 ) -> None:
     word = dispatch_office_app("Word")
