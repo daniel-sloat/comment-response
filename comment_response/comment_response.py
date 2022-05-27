@@ -1,4 +1,8 @@
-# Takes input from xlsx spredsheet that has comments listed per row with grouping categories specified into two or three headings, and outputs a docx document that is grouped by those headings, with comments listed under the lowest-tier heading and response following. The response must be on the first row of a grouping, with other response rows under the same grouping being blank.
+# Takes input from xlsx spredsheet that has comments listed per row with grouping categories 
+# specified into two or three headings, and outputs a docx document that is grouped by those 
+# headings, with comments listed under the lowest-tier heading and response following. The 
+# response must be on the first row of a grouping, with other response rows under the same 
+# grouping being blank.
 
 # //TODO Create toml configuration file
 # //TODO Make sure that the first nonempty response is taken for each comment grouping

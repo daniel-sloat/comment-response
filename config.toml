@@ -1,0 +1,27 @@
+# Load config file and parameters
+filename = 'input\Alex_45 Day_Comments_ref.xlsx'
+sheetname = 'Comments Database'
+
+[columns]
+comments = 'CommentText'
+response = 'draft Agency Response'
+tags = "Tags"
+
+[sort]
+level_1_column = "FSOR section heading level 1"
+level_2_column = "FSOR section heading level 2"
+level_3_column = "FSOR section heading level 3"
+# Specify level 1, 2, and 3 sorting.
+# Alphabetical (ascending): 'alpha', Comment Count (descending): 'count', No sort: anything else
+type = "count"
+# Specify custom sort of level 1. Use empty list [] for no custom sort.
+# For headings not listed here, it will be at the end and sorted as specified above.
+custom_level_1 = [
+  "Comments Group 1",
+  "Comments Group 2",
+  "Comments Group 3",
+]
+
+[other]
+# Specify whether what row header begins on. Assumes data starts immediately after.
+header_row = 1
