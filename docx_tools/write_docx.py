@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import docx
 from docx.enum.text import WD_UNDERLINE
 from docx.enum.style import WD_STYLE_TYPE
@@ -34,146 +31,80 @@ def _create_styles(doc: docx.Document) -> None:
     _style_maker(doc, "Response", left_indent=0.5, next_style="Response")
 
 
-def _write_comments_two_levels(
-    doc: docx.Document, nested_comment_responses: list
-) -> None:
-    # Strictly for hierarchies of only two levels ("Heading 1", "Heading 2")
-    for section1_data, section1_name in nested_comment_responses:
-        doc.add_heading(section1_name, 1)
-        for section2_data, section2_name in section1_data:
-            doc.add_heading(section2_name, 2)
-            for section3_data, section3_name, section3_response in section2_data:
-                # COMMENTS
-                multiple_cmts = len(section3_data) > 1
-                if multiple_cmts:
-                    plural_comments = "Multiple Comments:"
-                else:
-                    plural_comments = "Comment:"
-                doc.add_heading(f"{plural_comments} {section3_name}", 3)
-                for comment in section3_data:
-                    paragraph = doc.add_paragraph(style="Comments")
-                    if multiple_cmts:
-                        paragraph.add_run("Comment", style="Run u")
-                        paragraph.add_run(": ", style="Run ")
-                    for para_no, para in enumerate(comment):
-                        if para_no == 0:
-                            for run in para:
-                                paragraph.add_run(run[1], style="Run " + run[0])
-                        else:
-                            paragraph = doc.add_paragraph(style="Comments")
-                            for run in para:
-                                paragraph.add_run(run[1], style="Run " + run[0])
-                # RESPONSE
-                # Only one response, so one less level of iteration than comments.
-                paragraph = doc.add_paragraph(style="Response")
-                paragraph.add_run("Agency Response", style="Run biu")
-                paragraph.add_run(": ", style="Run ")
-                for para_no, para in enumerate(section3_response):
-                    if para_no == 0:
-                        for run in para:
-                            paragraph.add_run(run[1], style="Run " + run[0])
-                    else:
-                        paragraph = doc.add_paragraph(style="Response")
-                        for run in para:
-                            paragraph.add_run(run[1], style="Run " + run[0])
+def _word_formats(tag: str, run) -> None:
+    for f in tag:
+        match f:
+            case "b":
+                run.font.bold = True
+            case "i":
+                run.font.italic = True
+            case "u":
+                run.font.underline = True
+            case "w":
+                run.font.underline = WD_UNDERLINE.DOUBLE
+            case "s":
+                run.font.strike = True
+            case "z":
+                run.font.double_strike = True
+            case "x":
+                run.font.superscript = True
+            case "v":
+                run.font.subscript = True
     return None
 
 
-def _write_comments_two_or_three_levels(
-    doc: docx.Document, nested_comment_responses: list
-) -> None:
-    # For either two or three levels of hierarchy.
-    for section1_data, section1_name in nested_comment_responses:
-        doc.add_heading(section1_name, 1)
-        for section2_data, section2_name in section1_data:
-            if section2_data[0][1] != "Blank":
-                doc.add_heading(section2_name, 2)
-            for section3_data, section3_name, section3_response in section2_data:
-                multiple_cmts = len(section3_data) > 1
-                if multiple_cmts:
-                    plural_comments = "Multiple Comments:"
-                else:
-                    plural_comments = "Comment:"
-                if section3_name == "Blank":
-                    doc.add_heading(f"{plural_comments} {section2_name}", 2)
-                else:
-                    doc.add_heading(f"{plural_comments} {section3_name}", 3)
-                # COMMENTS
-                for comment in section3_data:
-                    paragraph = doc.add_paragraph(style="Comments")
-                    if multiple_cmts:
-                        paragraph.add_run("Comment", style="Run u")
-                        paragraph.add_run(": ", style="Run ")
-                    for para_no, para in enumerate(comment):
-                        if para_no == 0:
-                            for run in para:
-                                paragraph.add_run(run[1], style="Run " + run[0])
-                        else:
-                            paragraph = doc.add_paragraph(style="Comments")
-                            for run in para:
-                                paragraph.add_run(run[1], style="Run " + run[0])
-                # RESPONSE
-                # Only one response, so one less level of iteration than comments.
-                paragraph = doc.add_paragraph(style="Response")
-                paragraph.add_run("Agency Response", style="Run biu")
-                paragraph.add_run(": ", style="Run ")
-                for para_no, para in enumerate(section3_response):
-                    if para_no == 0:
-                        for run in para:
-                            paragraph.add_run(run[1], style="Run " + run[0])
-                    else:
-                        paragraph = doc.add_paragraph(style="Response")
-                        for run in para:
-                            paragraph.add_run(run[1], style="Run " + run[0])
-    return None
+def _write_comments_and_responses(doc, group_data):
+    for comment in group_data["comment_data"]["comments"]:
+        paragraph = doc.add_paragraph(style="Comments")
+        intro = paragraph.add_run("Comment")
+        intro.underline = True
+        paragraph.add_run(": ")
+        for para_no, para in enumerate(comment):
+            if para_no == 0:
+                p = paragraph.add_run(para[1])
+                _word_formats(para[0], p)
+            else:
+                # paragraph = doc.add_paragraph()
+                p = paragraph.add_run(para[1])
+                _word_formats(para[0], p)
+    for response in group_data["comment_data"]["response"]:
+        paragraph = doc.add_paragraph(style="Response")
+        intro = paragraph.add_run("Agency Response")
+        intro.underline = True
+        intro.bold = True
+        paragraph.add_run(": ")
+        for para_no, para in enumerate(response):
+            if para_no == 0:
+                p = paragraph.add_run(para[1])
+                _word_formats(para[0], p)
+            else:
+                # paragraph = doc.add_paragraph()
+                p = paragraph.add_run(para[1])
+                _word_formats(para[0], p)
 
 
-def _word_formats(
-    doc: docx.Document, formats: list[str], add_styles: list[str]
-) -> None:
-    styles = doc.styles
-    if add_styles:
-        for style in add_styles:
-            formats.append(style)
-        formats = list(set(formats))
-    for tag in formats:
-        charstyle_font = styles.add_style("Run " + tag, WD_STYLE_TYPE.CHARACTER).font
-        for f in tag:
-            match f:
-                case "b":
-                    charstyle_font.bold = True
-                case "i":
-                    charstyle_font.italic = True
-                case "u":
-                    charstyle_font.underline = True
-                case "w":
-                    charstyle_font.underline = WD_UNDERLINE.DOUBLE
-                case "s":
-                    charstyle_font.strike = True
-                case "z":
-                    charstyle_font.double_strike = True
-                case "x":
-                    charstyle_font.superscript = True
-                case "v":
-                    charstyle_font.subscript = True
+def _write_document(doc: docx.Document, top_level: list) -> None:
+    def recursion(top_level, outline_level=1):
+        for group in top_level:
+            if group["heading"]:
+                doc.add_heading(group["heading"], outline_level)
+            if isinstance(group["data"], dict):
+                _write_comments_and_responses(doc, group["data"])
+            else:
+                recursion(group["data"], outline_level + 1)
+
+    recursion(top_level)
     return None
 
 
 def commentsectiondoc(
     nested_comment_responses: list,
-    formats: list[str],
-    levels: int = 2,
     savename: str = "output\CommentResponseSection.docx",
 ) -> None:
     print("Creating Comments and Response section document... ")
     doc = docx.Document()
     _create_styles(doc)
-    # Need to include default styles "u" and "biu", used in word doc
-    _word_formats(doc, formats, add_styles=["i", "u", "biu"])
-    if levels <= 2:
-        _write_comments_two_levels(doc, nested_comment_responses)
-    else:
-        _write_comments_two_or_three_levels(doc, nested_comment_responses)
+    _write_document(doc, nested_comment_responses)
     doc.save(savename)
     print("Comments and response section document created: " + savename)
     return None

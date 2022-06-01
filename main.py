@@ -8,6 +8,8 @@ import re
 from itertools import groupby
 from pprint import pprint
 
+from docx_tools import write_docx
+
 # Create dict of relevant xml content
 # Use current formulas to create comment record
 # See how to group data using itertools
@@ -19,7 +21,7 @@ def initialize_logging():
         filemode="w",
         level=logging.INFO,
         datefmt=r"%Y-%m-%d %H:%M:%S",
-        format="%(asctime)s [%(levelname)s] %(message)s",
+        format="%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s",
     )
     logging.info("Comment response script initalized.")
     return None
@@ -120,7 +122,7 @@ def get_header(xlsx_tree, sheet, plain_strings, rich_strings, row_no):
         f"w:sheetData/w:row[@r={row_no}]", namespaces=NAMESPACES
     )[0]
     header_data = get_row_data(row, plain_strings, rich_strings)
-    header_data = header_data[row_no]
+    # header_data = header_data[row_no]
     return header_data
 
 
@@ -136,12 +138,12 @@ def get_data_after_header(
     rows = xlsx_tree[sheet].xpath(
         f"w:sheetData/w:row[@r>{row_no}]", namespaces=NAMESPACES
     )
-    data_rows = {}
+    data_rows = []
     for row in rows:
         row_data = get_row_data(
             row, plain_strings, rich_strings, comment_col_num, response_col_num
         )
-        data_rows |= row_data
+        data_rows.append(row_data)
     return data_rows
 
 
@@ -194,9 +196,9 @@ def get_row_data(
                     except ValueError:
                         cell_code = str(value)
         column_data[col_num] = cell_code
-    assert row_no == int(row_num), "Mixup error."
-    row_data[row_no] = column_data
-    return row_data
+    # assert row_no == int(row_num), "Mixup error."
+    # row_data[row_no] = column_data
+    return column_data
 
 
 def create_formatdict(run_node: etree.Element) -> dict:
@@ -232,6 +234,7 @@ def run_format(run_node: etree.Element) -> str:
             case "strike":
                 # Double-strikethrough does not exist in Excel. Strike + red text
                 # is used to denote double-strikethrough
+                # //TODO This needs to not rely on color and rgb keys.
                 if "color" in formatdict and "rgb" in formatdict["color"]:
                     if formatdict["color"]["rgb"] == "FFFF0000":
                         formats.append("z")
@@ -271,19 +274,97 @@ def get_plain_ss(xlsx_tree) -> list:
     return sharedstrings_plain
 
 
-def find_columns(header, config_file):
+def find_column_num(header, config_file):
     for k, v in header.items():
-        if v == config_file["columns"]["comments"]:
+        if v == config_file["columns"]["comment"]:
             comment_col_num = k
         if v == config_file["columns"]["response"]:
             response_col_num = k
-        if v == config_file["sort"]["level_1_column"]:
-            level_1 = k
-        if v == config_file["sort"]["level_2_column"]:
-            level_2 = k
-        if v == config_file["sort"]["level_3_column"]:
-            level_3 = k
-    return comment_col_num, response_col_num, level_1, level_2, level_3
+    return comment_col_num, response_col_num
+
+
+def find_columns(header, config_file):
+    columns = {}
+    for k, v in header.items():
+        columns[k] = {}
+        for k1, v1 in config_file["columns"].items():
+            if v == v1:
+                columns[k] = {k1: v}
+        for heading_no, column in enumerate(config_file["sort"]["columns"], 1):
+            if v == column:
+                columns[k] = {f"heading{heading_no}": column}
+    return columns
+
+
+def create_new_rows(data, columns_relevant):
+    new_rows = []
+    for row in data:
+        d = {}
+        cols = []
+        for col_no, col_data in columns_relevant.items():
+            for col_name, value in col_data.items():
+                if "heading" in col_name:
+                    cols.append(row.get(col_no))
+                else:
+                    d[col_name] = row.get(col_no)
+        d["sort"] = cols
+        new_rows.append(d)
+    return new_rows
+
+
+def group_comments_and_responses(group):
+    # Combine comments into list[list] (paragraphs still denoted by '\n')
+    # Some response cells will be empty. In case there are multiple cells of
+    # responses, combine into list as well (unfortunately the responses won't
+    # be in any sort of order).
+    grouped_comments = []
+    grouped_responses = []
+    comments_and_responses = {}
+    comments_and_responses["comment_data"] = {}
+    for g in group:
+        # Selects only those rows with comments.
+        if g["comment"]:
+            grouped_comments.append(g["comment"])
+            # Only select responses attached to a comment
+            if g["response"]:
+                grouped_responses.append(g["response"])
+    comments_and_responses["comment_data"]["comments"] = grouped_comments
+    comments_and_responses["comment_data"]["response"] = grouped_responses
+    return comments_and_responses
+
+
+def group_data(comment_response_data):
+
+    def initial_sort_and_group(comment_response_data, key_sort):
+        comment_response_data = sorted(comment_response_data, key=key_sort)
+        initial_grouping = []
+        for key, group in groupby(comment_response_data, key=key_sort):
+            grouped_data = group_comments_and_responses(group)
+            initial_grouping.append(
+                {"sort": key[:-1], "heading": key[-1], "data": grouped_data},
+            )
+        return initial_grouping
+
+    def following_groupings(grouped_data, key_sort):
+        new_grouped_data = []
+        for key, group in groupby(grouped_data, key=key_sort):
+            combined = []
+            for g in group:
+                combined.append(g)
+                g.pop("sort")
+            if key[:-1]:
+                new_grouped_data.append(
+                    {"sort": key[:-1], "heading": key[-1], "data": combined}
+                )
+            else:
+                new_grouped_data.append({"heading": key[-1], "data": combined})
+        return new_grouped_data
+
+    key_sort = lambda x: tuple(x["sort"])
+    combo_list = initial_sort_and_group(comment_response_data, key_sort)
+    while combo_list[0].get("sort"):
+        combo_list = following_groupings(combo_list, key_sort)
+    return combo_list
 
 
 def main():
@@ -303,9 +384,9 @@ def main():
         config_file["other"]["header_row"],
     )
 
-    comment_col_num, response_col_num, level_1, level_2, level_3 = find_columns(
-        header, config_file
-    )
+    comment_col_num, response_col_num = find_column_num(header, config_file)
+
+    columns_relevant = find_columns(header, config_file)
 
     data = get_data_after_header(
         xlsx_tree,
@@ -317,7 +398,12 @@ def main():
         response_col_num,
     )
 
-    pprint(data[6][level_1], sort_dicts=False)
+    new_rows = create_new_rows(data, columns_relevant)
+    new_rows = group_data(new_rows)
+
+    #pprint(new_rows[0]["data"][1]["data"], sort_dicts=False, width=150)
+
+    write_docx.commentsectiondoc(new_rows)
     
     quit_logging()
 

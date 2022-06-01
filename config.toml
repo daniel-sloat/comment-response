@@ -1,19 +1,22 @@
 # Load config file and parameters
-filename = 'input\Alex_45 Day_Comments_ref.xlsx'
+filename = 'input\Alex_45 Day_Comments_ref - Copy.xlsx'
 sheetname = 'Comments Database'
 
 [columns]
-comments = 'CommentText'
+comment = 'CommentText'
 response = 'draft Agency Response'
-tags = "Tags"
+tag = 'File Name'
 
 [sort]
-level_1_column = "FSOR section heading level 1"
-level_2_column = "FSOR section heading level 2"
-level_3_column = "FSOR section heading level 3"
 # Specify level 1, 2, and 3 sorting.
 # Alphabetical (ascending): 'alpha', Comment Count (descending): 'count', No sort: anything else
 type = "count"
+# The number of heading columns to sort by is limited to 9.
+columns = [
+  "FSOR section heading level 1",
+  "FSOR section heading level 2",
+  "FSOR section heading level 3",
+]
 # Specify custom sort of level 1. Use empty list [] for no custom sort.
 # For headings not listed here, it will be at the end and sorted as specified above.
 custom_level_1 = [
@@ -25,3 +28,12 @@ custom_level_1 = [
 [other]
 # Specify whether what row header begins on. Assumes data starts immediately after.
 header_row = 1
+print_before_delimiter = ':'
+# Customize multiple comments.
+print_before_comment = true
+print_before_multiple_comment_text = 'Comment'
+# Customize response (uses print before delimiter)
+print_before_response = true
+print_before_response_text = 'Agency Response'
+# Specify starting heading level (1 means begin at Heading 1)
+outline_level = 1
