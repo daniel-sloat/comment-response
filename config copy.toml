@@ -1,5 +1,5 @@
 # Load config file and parameters
-filename = 'input\Alex_45 Day_Comments_ref.xlsx'
+filename = 'input\Alex_45 Day_Comments_ref - Copy.xlsx'
 sheetname = 'Comments Database'
 
 [columns]
@@ -26,8 +26,9 @@ tag = 'File Name'
 [sort]
 # Specify sorting of lowest-level (where comments and responses are).
 # Comment Count (descending): 'count', Alphabetical (ascending): anything else
-type = 'count'
+type = ''
 
+# //TODO
 # Where to get sort data from. 'worksheet' for columns specified under numbered sort,
 # or 'config' for sort data from this configuration file.
 sort = 'config'
@@ -39,9 +40,7 @@ custom_level_1 = [
 ]
 # This is a lump-all of all subheadings past Level 1. This really shines as a way to 
 # bring something to the first position of all subheadings - like a "General" category
-# or something. 
-# If the lowest-level is sorted by comment count (sort-type, above), then this has no effect
-# on lowest-level sorting characteristics (as they will be sorted by comment count).
+# or something. But, it can also be used to 
 custom_level_2 = [
   "Air compressors"
 ]
@@ -52,5 +51,5 @@ header_row = 1
 # Specify starting heading level (1 means begin at Heading 1)
 outline_level = 2
 # Specify whether to remove leading and trailing spaces at the end of paragraphs.
-# Also removes double-spaces. (true or false)
+# Also removes double-spaces.
 clean = true

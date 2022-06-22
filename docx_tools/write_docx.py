@@ -3,6 +3,8 @@ from docx.enum.text import WD_UNDERLINE
 from docx.enum.style import WD_STYLE_TYPE
 from docx.shared import Inches, Pt
 
+from logtools import logtools
+
 
 def _create_styles(doc: docx.Document) -> None:
     def _style_maker(
@@ -59,76 +61,63 @@ def _write_comments_and_responses(doc, group_data):
         intro = paragraph.add_run("Comment")
         intro.underline = True
         paragraph.add_run(": ")
-        for para_no, para in enumerate(comment):
+        for para_no, para in enumerate(comment.paragraphs):
             if para_no == 0:
-                p = paragraph.add_run(para[1])
-                _word_formats(para[0], p)
+                for run in para.runs:
+                    r = paragraph.add_run(run.text)
+                    _word_formats(run.props, r)
             else:
-                # paragraph = doc.add_paragraph()
-                p = paragraph.add_run(para[1])
-                _word_formats(para[0], p)
+                paragraph = doc.add_paragraph(style="Comments")
+                for run in para.runs:
+                    r = paragraph.add_run(run.text)
+                    _word_formats(run.props, r)
     for response in group_data["comment_data"]["response"]:
         paragraph = doc.add_paragraph(style="Response")
         intro = paragraph.add_run("Agency Response")
         intro.underline = True
         intro.bold = True
         paragraph.add_run(": ")
-        for para_no, para in enumerate(response):
+        for para_no, para in enumerate(response.paragraphs):
             if para_no == 0:
-                p = paragraph.add_run(para[1])
-                _word_formats(para[0], p)
+                for run in para.runs:
+                    r = paragraph.add_run(run.text)
+                    _word_formats(run.props, r)
             else:
-                # paragraph = doc.add_paragraph()
-                p = paragraph.add_run(para[1])
-                _word_formats(para[0], p)
+                paragraph = doc.add_paragraph(style="Response")
+                for run in para.runs:
+                    r = paragraph.add_run(run.text)
+                    _word_formats(run.props, r)
 
 
-def _write_document(doc: docx.Document, top_level: list) -> None:
+def _write_document(doc: docx.Document, top_level: list, outline_level_start: int) -> None:
     def recursion(top_level, outline_level=1):
         for group in top_level:
-            if group["heading"]:
-                doc.add_heading(group["heading"], outline_level)
-            if isinstance(group["data"], dict):
+
+            if isinstance(group.get("data"), dict):
+                if len(group["data"]["comment_data"]["comments"]) > 1:
+                    multiple_comments = "Multiple Comments: "
+                else:
+                    multiple_comments = "Comment: "
+                doc.add_heading(multiple_comments + group["heading"], outline_level)
                 _write_comments_and_responses(doc, group["data"])
             else:
-                recursion(group["data"], outline_level + 1)
+                doc.add_heading(group["heading"], outline_level)
+                recursion(group.get("data"), outline_level + 1)
 
-    recursion(top_level)
+    recursion(top_level, outline_level_start)
     return None
 
 
+@logtools.log_write_docx
 def commentsectiondoc(
     nested_comment_responses: list,
+    outline_level_start: int = 1,
     savename: str = "output\CommentResponseSection.docx",
-) -> None:
+) -> str:
     print("Creating Comments and Response section document... ")
     doc = docx.Document()
     _create_styles(doc)
-    _write_document(doc, nested_comment_responses)
+    _write_document(doc, nested_comment_responses, outline_level_start)
     doc.save(savename)
     print("Comments and response section document created: " + savename)
-    return None
-
-
-def automarkdoc(entry_list: list, savename: str = "output\AutoMark.docx") -> None:
-    # AutoMark document is document with two col table for automatically
-    # marking index entries in another document.
-    print("Creating AutoMark document... ")
-
-    def _write_table(doc, entry_list):
-        # Use table._cells to "pop" out the cells from the table, limiting
-        # the amount of calls to the table in the Word document (improving
-        # speed by multiple times). Updates Word document only after the
-        # table is filled.
-        # https://theprogrammingexpert.com/write-table-fast-python-docx/
-        table = doc.add_table(rows=len(entry_list), cols=2)
-        table_cells = table._cells
-        for i in range(len(entry_list)):
-            for j in range(len(entry_list[i])):
-                table_cells[j + i * 2].text = str(entry_list[i][j])
-
-    doc = docx.Document()
-    _write_table(doc, entry_list)
-    doc.save(savename)
-    print("AutoMark document created: " + savename)
-    return None
+    return savename
