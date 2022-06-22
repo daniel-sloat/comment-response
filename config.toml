@@ -17,6 +17,7 @@ numbered_sort = [
 ]
 
 [columns.commentresponse]
+# These are required to be specified.
 comment = 'CommentText'
 response = 'draft Agency Response'
 
@@ -34,7 +35,7 @@ type = 'count'
 
 # Where to get sort data from. 'worksheet' for columns specified under numbered sort,
 # or 'config' for sort data from this configuration file.
-sort = 'worksheet'
+sort = 'config'
 
 # Specify custom sort of level 1. Use empty list [] for no custom sort.
 # For headings not listed here, it will be at the end and sorted as specified above.
@@ -47,7 +48,6 @@ custom_level_1 = [
 # If the lowest-level is sorted by comment count (sort-type, above), then this has no effect
 # on lowest-level sorting characteristics (as they will be sorted by comment count).
 custom_level_2 = [
-  "Air compressors"
 ]
 
 [other]
@@ -55,6 +55,7 @@ custom_level_2 = [
 header_row = 1
 # Specify starting heading level (1 means begin at Heading 1)
 outline_level = 2
-# Specify whether to remove leading and trailing spaces at the end of paragraphs.
-# Also removes double-spaces. (true or false)
-clean = true
+# Specify whether to remove double spaces.
+# Leading and trailing whitespace at the end of paragraphs are automatically trimmed.
+# (true or false)
+remove_double_spaces = true

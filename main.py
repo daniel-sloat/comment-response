@@ -1,7 +1,8 @@
 from logtools import logtools
 from config_loader import load_toml_config
 from open_office_xml import Sheet
-import group
+import comment_response.group as group
+import comment_response.relevant_data as relevant_data
 from docx_tools import write_docx, automark
 
 
@@ -18,10 +19,7 @@ def main():
         header_row=config_file["other"]["header_row"],
     )
 
-    data = group.relevant_data(
-        sheet, config_file["columns"], config_file["other"]["clean"]
-    )
-    data = group.append_comment_tags(data)
+    data = relevant_data.comment_data(sheet, config_file)
     comment_response_data = group.group_data(data, config_file["sort"])
 
     write_docx.commentsectiondoc(

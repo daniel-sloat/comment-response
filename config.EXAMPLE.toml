@@ -1,21 +1,60 @@
 # Load config file and parameters
-FILENAME = "Comment-Response.xlsx"
-SHEETNAME = "sheet1"
-COMMENTS_COLUMN = "Comments"
-RESPONSE_COLUMN = "Response"
-COMMENT_TAGS_COLUMN = "Tags"
-LEVEL_1 = "Heading 1"
-LEVEL_2 = "Heading 2"
-LEVEL_3 = "Heading 3"
+filename = 'input\Alex_45 Day_Comments_ref - Copy.xlsx'
+sheetname = 'Comments Database'
 
-# Specify level 1, 2, and 3 sorting.
-# Alphabetical (ascending): 'alpha', Comment Count (descending): 'count', No sort: anything else
-SORT = "count"
+[columns]
+sort = [
+  "FSOR section heading level 1",
+  "FSOR section heading level 2",
+  "FSOR section heading level 3",
+]
+
+# Numbered sort columns if sort-sort is set to 'worksheet'
+numbered_sort = [
+  "value1",
+  "value2",
+  "value3",
+]
+
+[columns.commentresponse]
+# These are required to be specified.
+comment = 'CommentText'
+response = 'draft Agency Response'
+
+[columns.other]
+# The key "tag" is required. "tag" is appended to the end of each comment to
+# provide a way of keeping track of comments and their commenter. Comment tags
+# should be a unique text string not found anywhere else in the document if using
+# these tags to create an index.
+tag = 'File Name'
+
+[sort]
+# Specify sorting of lowest-level (where comments and responses are).
+# Comment Count (descending): 'count', Alphabetical (ascending): anything else
+type = 'count'
+
+# Where to get sort data from. 'worksheet' for columns specified under numbered sort,
+# or 'config' for sort data from this configuration file.
+sort = 'worksheet'
 
 # Specify custom sort of level 1. Use empty list [] for no custom sort.
 # For headings not listed here, it will be at the end and sorted as specified above.
-LEVEL_1_SORT = [
-    "Comments Group 1",
-    "Comments Group 2",
-    "Comments Group 3"
+custom_level_1 = [
 ]
+# This is a lump-all of all subheadings past Level 1. This really shines as a way to 
+# bring something to the first position of all subheadings - like a "General" category
+# or something. 
+# If the lowest-level is sorted by comment count (sort-type, above), then this has no effect
+# on lowest-level sorting characteristics (as they will be sorted by comment count).
+custom_level_2 = [
+]
+
+[other]
+# Specify whether what row header begins on. Assumes data starts immediately after.
+header_row = 1
+# Specify starting heading level (1 means begin at Heading 1)
+outline_level = 2
+# Specify whether to remove double spaces.
+# Leading and trailing whitespace at the end of paragraphs are automatically trimmed.
+# (true or false)
+remove_double_spaces = true
