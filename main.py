@@ -4,6 +4,7 @@ from open_office_xml import Sheet
 import comment_response.group as group
 import comment_response.relevant_data as relevant_data
 from docx_tools import write_docx, automark
+from win32_tools import mark_index_entries
 
 
 def main():
@@ -29,6 +30,10 @@ def main():
 
     entry_list = automark.make_entry_list(data)
     automark.automarkdoc(entry_list)
+
+    print("Marking index entries using Microsoft Word...")
+    logtools.logging.info("Marking index entries using Microsoft Word...")
+    mark_index_entries()
 
     logtools.quit_logging()
 

@@ -59,3 +59,9 @@ outline_level = 2
 # Leading and trailing whitespace at the end of paragraphs are automatically trimmed.
 # (true or false)
 remove_double_spaces = true
+
+[index]
+# If any of these are set to true, Microsoft Word is 
+mark_index_entries = true
+# If mark_index_entries is false, this setting does nothing.
+append_comment_index = true
