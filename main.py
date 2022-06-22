@@ -1,4 +1,3 @@
-from pprint import pprint
 from logtools import logtools
 from config_loader import load_toml_config
 from open_office_xml import Sheet
@@ -22,9 +21,7 @@ def main():
     data = group.relevant_data(
         sheet, config_file["columns"], config_file["other"]["clean"]
     )
-    
-    # TODO Append tags to comments here.
-    
+    data = group.append_comment_tags(data)
     comment_response_data = group.group_data(data, config_file["sort"])
 
     write_docx.commentsectiondoc(

@@ -1,7 +1,7 @@
 import re
 from itertools import chain, groupby
 
-from open_office_xml.dataclasses import RichText
+from open_office_xml.dataclasses import RichText, Run
 
 
 def relevant_data(sheet, config_columns, clean=True):
@@ -49,6 +49,16 @@ def _clean_text(rich):
             elif run == paragraph.runs[0]:
                 run.text = run.text.lstrip()
     return rich
+
+
+def append_comment_tags(data):
+    # Appends comment tag to the end of the last paragraph of each comment.
+    for d in data:
+        text = f" ({d['tag']})"
+        for para in d["comment"].paragraphs:
+            if para == d["comment"].paragraphs[-1]:
+                para.runs.append(Run(props="",text=text))
+    return data
 
 
 def _create_sort(data, sort):

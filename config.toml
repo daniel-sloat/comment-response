@@ -1,5 +1,5 @@
 # Load config file and parameters
-filename = 'input\Alex_45 Day_Comments_ref.xlsx'
+filename = 'input\Alex_45 Day_Comments_ref - Copy.xlsx'
 sheetname = 'Comments Database'
 
 [columns]
@@ -21,6 +21,10 @@ comment = 'CommentText'
 response = 'draft Agency Response'
 
 [columns.other]
+# The key "tag" is required. "tag" is appended to the end of each comment to
+# provide a way of keeping track of comments and their commenter. Comment tags
+# should be a unique text string not found anywhere else in the document if using
+# these tags to create an index.
 tag = 'File Name'
 
 [sort]
@@ -30,7 +34,7 @@ type = 'count'
 
 # Where to get sort data from. 'worksheet' for columns specified under numbered sort,
 # or 'config' for sort data from this configuration file.
-sort = 'config'
+sort = 'worksheet'
 
 # Specify custom sort of level 1. Use empty list [] for no custom sort.
 # For headings not listed here, it will be at the end and sorted as specified above.
