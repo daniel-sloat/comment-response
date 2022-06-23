@@ -12,8 +12,8 @@ def main():
 
     config_file = load_toml_config.load_toml_config()
 
-    print("Reading sheet...")
-    logtools.logging.info("Reading sheet...")
+    print(f"Reading sheet '{config_file['sheetname']}' from {config_file['filename']}...")
+    logtools.logging.info(f"Reading sheet '{config_file['sheetname']}' from {config_file['filename']}...")
     sheet = Sheet.Sheet(
         filepath=config_file["filename"],
         sheetname=config_file["sheetname"],
