@@ -80,6 +80,9 @@ def _following_groupings(grouped_data, key_sort, continue_sort=True):
     while continue_sort:
         grouped_data = _grouper(grouped_data, key_sort)
         continue_sort = any([x.get("sort") for x in grouped_data])
+    else:
+        # When complete, remove "sort" key from top level (not necessary, but for cleanup)
+        grouped_data = [{k: v for k,v in x.items() if k != "sort"} for x in grouped_data]
 
     return grouped_data
 
