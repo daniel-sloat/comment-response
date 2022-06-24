@@ -27,7 +27,7 @@ def _group_comments_and_responses(group):
 
 
 def _initial_sort_and_group(comment_response_data, key_sort):
-    # Performs first (lowest-level) sorting and grouping. This is important 
+    # Performs first (lowest-level) sorting and grouping. This is important
     # because the comments and any responses are grouped. Sorting occurs
     # here before grouping, as the itertools groupby function requires that
     # to group all similar keys. After this initial sort and group, all that
@@ -61,7 +61,7 @@ def _sort_by_comment_count(initial_grouping):
 
 def _following_groupings(grouped_data, key_sort, continue_sort=True):
     # Group remaining levels until key is exhausted.
-    def _grouper(grouped_data,key_sort):
+    def _grouper(grouped_data, key_sort):
         new_grouped_data = []
         for key, group in groupby(grouped_data, key=key_sort):
             if key:
@@ -76,13 +76,15 @@ def _following_groupings(grouped_data, key_sort, continue_sort=True):
                 # the group iterable to keep the same.
                 new_grouped_data.extend([g for g in group])
         return new_grouped_data
-    
+
     while continue_sort:
         grouped_data = _grouper(grouped_data, key_sort)
         continue_sort = any([x.get("sort") for x in grouped_data])
     else:
         # When complete, remove "sort" key from top level (not necessary, but for cleanup)
-        grouped_data = [{k: v for k,v in x.items() if k != "sort"} for x in grouped_data]
+        grouped_data = [
+            {k: v for k, v in x.items() if k != "sort"} for x in grouped_data
+        ]
 
     return grouped_data
 
@@ -90,10 +92,10 @@ def _following_groupings(grouped_data, key_sort, continue_sort=True):
 def group_data(comment_response_data, sort):
     key_sort = lambda x: x["sort"]
     grouped_data = _initial_sort_and_group(comment_response_data, key_sort)
-    
+
     if sort["type"] == "count":
         grouped_data = _sort_by_comment_count(grouped_data)
 
     grouped_data = _following_groupings(grouped_data, key_sort)
-        
+
     return grouped_data
