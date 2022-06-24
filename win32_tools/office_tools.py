@@ -29,9 +29,9 @@ def dispatch_office_app(app: str) -> win32.gencache.EnsureDispatch:
     return office_app
 
 def mark_index_entries(
-    filename: str="CommentResponseSection.docx",
-    automark: str="AutoMark.docx",
-    add_index: bool=False
+    filename: str="output\CommentResponseSection.docx",
+    automark: str="output\AutoMark.docx",
+    add_index: bool=True,
 ) -> None:
     word = dispatch_office_app("Word")
     cwd = os.getcwd()
@@ -43,21 +43,6 @@ def mark_index_entries(
         index = doc.Indexes
         index.AutoMarkEntries(automark_filepath)
         print("Index entries marked.")
-        return None
-    
-    def clean_index_entries(doc):
-        docrng = doc.Content
-        m = {r"zyx(*)xyz": r"\1"}
-        for key, value in m.items():
-            find = docrng.Find
-            find.Text = key
-            find.Replacement.Text = value
-            find.Wrap = 1
-            find.Forward = True
-            find.MatchWildcards = True # wildcard search
-            find.Execute(Replace=2)
-        print("Index entries cleaned.")
-        remove_line_breaks(doc)
         return None
     
     def append_index(doc):
@@ -76,23 +61,8 @@ def mark_index_entries(
         return None
 
     add_index_entries(doc,automark_filepath)
-    clean_index_entries(doc)
     if add_index: append_index(doc)
     doc.Save()
     doc = None
     word.Application.Quit()
-    return None
-
-def remove_line_breaks(doc):
-    docrng = doc.Content
-    m = {r"^l^l": r"^l", r"^l": r"^p", r"^p^p": r"^p"}
-    for key, value in m.items():
-        find = docrng.Find
-        find.Text = key
-        find.Replacement.Text = value
-        find.Wrap = 1
-        find.Forward = True
-        find.MatchWildcards = False
-        find.Execute(Replace=2)
-    print("Line breaks replaced with paragraph breaks.")
     return None
