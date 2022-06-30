@@ -21,13 +21,13 @@ def main():
     )
 
     data = relevant_data.comment_data(sheet, config_file)
+    #print(data)
     comment_response_data = group.group_data(data, config_file["sort"])
 
     write_docx.commentsectiondoc(
         comment_response_data,
         outline_level_start=config_file["other"]["outline_level"],
     )
-
     entry_list = automark.make_entry_list(data)
     automark.automarkdoc(entry_list)
 

@@ -21,15 +21,16 @@ def _relevant_data(sheet, config_columns, remove_double_spaces=True):
             # out zeroes, which may be used for sorting purposes.
             if (
                 col_data.col_name in config_columns["numbered_sort"]
-                and col_data.value is not None
             ):
                 numbered_sort.append(col_data.value)
             if (
                 col_data.col_name in config_columns["sort"]
-                and col_data.value is not None
             ):
                 sort_cols.append(col_data.value)
 
+
+        while len(sort_cols) < len(config_columns["sort"]):
+            sort_cols.append(None)
         # Make both sort columns equal in length. Assumes sort_cols will be
         # filled completely and correctly.
         while len(numbered_sort) < len(sort_cols):
