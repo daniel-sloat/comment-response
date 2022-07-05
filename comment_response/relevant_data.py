@@ -11,26 +11,26 @@ def _relevant_data(sheet, config_columns, remove_double_spaces=True):
         numbered_sort = []
         data = {}
         for col_data in row:
+            
             for cat, col in config_columns["commentresponse"].items():
                 if col_data.col_name == col:
                     data[cat] = _clean_text(col_data.rich, remove_double_spaces)
             for cat, col in config_columns["other"].items():
                 if col_data.col_name == col:
                     data[cat] = col_data.value
-            # 'is not None' is needed for this situation, as checking for truthy will also filter
-            # out zeroes, which may be used for sorting purposes.
-            if (
-                col_data.col_name in config_columns["numbered_sort"]
-            ):
+            
+            if col_data.col_name in config_columns["numbered_sort"]:
+                if col_data.value is None:
+                    col_data.value = float("inf")
                 numbered_sort.append(col_data.value)
-            if (
-                col_data.col_name in config_columns["sort"]
-            ):
+            if col_data.col_name in config_columns["sort"]:
+                if col_data.value is None:
+                    col_data.value = ""
                 sort_cols.append(col_data.value)
 
 
         while len(sort_cols) < len(config_columns["sort"]):
-            sort_cols.append(None)
+            sort_cols.append("")
         # Make both sort columns equal in length. Assumes sort_cols will be
         # filled completely and correctly.
         while len(numbered_sort) < len(sort_cols):
@@ -40,7 +40,9 @@ def _relevant_data(sheet, config_columns, remove_double_spaces=True):
 
         if not data.get("response"):
             data["response"] = RichText()
+            
         comment_response_data.append(data)
+        
     return comment_response_data
 
 

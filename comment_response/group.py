@@ -1,5 +1,5 @@
 from itertools import groupby
-from pprint import pprint
+from copy import deepcopy
 
 from open_office_xml.dataclasses import RichText
 
@@ -19,7 +19,7 @@ def _group_comments_and_responses(group):
             # Only select responses attached to a comment
             if g["response"].paragraphs:
                 grouped_responses.append(g["response"])
-    # If the response is empty, insert blank response (a list of RichText).
+    # If the response is empty, insert blank response (a list with one RichText object).
     if not grouped_responses:
         grouped_responses = [RichText()]
     comments_and_responses["comment_data"]["comments"] = grouped_comments
@@ -27,34 +27,22 @@ def _group_comments_and_responses(group):
     return comments_and_responses
 
 
-def _initial_sort_and_group(comment_response_data, key_sort):
-    # Performs first (lowest-level) sorting and grouping. This is important
-    # because the comments and any responses are grouped. Sorting occurs
-    # here before grouping, as the itertools groupby function requires that
-    # to group all similar keys. After this initial sort and group, all that
-    # remains is going through the remaining headings (the "comment data"
-    # is all grouped here).
-    comment_response_data = sorted(comment_response_data, key=key_sort)
-    initial_grouping = []
-    for key, group in groupby(comment_response_data, key=key_sort):
-        group = list(group)
-        grouped_data = _group_comments_and_responses(group)
-        if key[-1]:
-            # print("IF")
-            initial_grouping.append(
-                {"sort": key[:-2], "heading": key[-1], "data": grouped_data}
-            )
-        else:
-            data = {k: v for k, v in grouped_data.items() if k == "comment_data"}
-            # print(group)
-            initial_grouping.append({"sort": key[:-2], "data": data})
-    return initial_grouping
+def _initial_sort(comment_response_data, sort_type, key_sort):
+    
+    if sort_type == "nosort":
+        return sorted(comment_response_data, key=lambda x: x["sort"][0::2])
+    else:
+        return sorted(comment_response_data, key=key_sort)
+    
+
+def _initial_group(comment_response_data, key_sort):
+    return [
+        {"sort": key[1::2], "data": _group_comments_and_responses(group)}
+        for key, group in groupby(comment_response_data, key=key_sort)
+    ]
 
 
-from operator import itemgetter
-
-
-def _sort_by_comment_count(initial_grouping):
+def _sort_by_comment_count(groups):
     # To sort by comment count, preserve the "sort" grouping first, then
     # sort by (descending) comment count, then alphabetically for those
     # headings that have the same comment count. Default without sorting by
@@ -66,23 +54,59 @@ def _sort_by_comment_count(initial_grouping):
             return float("inf")
 
     new_obj = []
-    for dictionary in initial_grouping:
-        
+    for dictionary in groups:
+
         def recursive(dictionary):
-        
-            if "data" in dictionary:
-                
-                if isinstance(dictionary["data"], list):
-                    dictionary["data"] = _sort_by_comment_count(dictionary["data"])
-                    
-                elif isinstance(dictionary["data"], dict):
-                    return recursive(dictionary["data"])
-        
+
+            if isinstance(dictionary.get("data"), list):
+                dictionary["data"] = _sort_by_comment_count(dictionary["data"])
+
+            elif isinstance(dictionary.get("data"), dict):
+                return recursive(dictionary["data"])
+
         recursive(dictionary)
-        
-    new_obj = sorted(initial_grouping, key=keysort)
-                
+
+    new_obj = sorted(groups, key=keysort)
+
     return new_obj
+
+
+def depth_of_sort(grouped_data, continue_sort=True):
+    # Creates dictionary of group keys ("headings") with the number of subheadings under
+    # the group key.
+
+    def get_subheading_count(gd):
+        sort_data = {}
+        for key, group in groupby(gd, key=lambda x: x["sort"]):
+            sort_data[key] = len(list(group))
+        return sort_data
+
+    subheadings_count = {}
+    gd = deepcopy(grouped_data)
+    while continue_sort:
+        subheadings_count |= get_subheading_count(gd)
+        for group in gd:
+            group["sort"] = group["sort"][:-1]
+        continue_sort = max([len(group["sort"]) for group in gd])
+
+    return subheadings_count
+
+
+def _fix_empty_sort(grouped_data, sort_data):
+    # If all subheadings in the next level are blank, then remove empty heading.
+    # Else (if there are other headings including the empty heading), keep the
+    # empty heading.
+    new_group = []
+    for key, group in groupby(grouped_data, key=lambda x: x["sort"]):
+        group = list(group)
+        if sort_data[key[:-1]] == 1 and key[-1] == "":
+            for g in group:
+                g["sort"] = g["sort"][:-1]
+            new_group.extend(group)
+        else:
+            new_group.extend(group)
+
+    return new_group
 
 
 def _following_groupings(grouped_data, key_sort, continue_sort=True):
@@ -91,31 +115,14 @@ def _following_groupings(grouped_data, key_sort, continue_sort=True):
         new_grouped_data = []
         for key, group in groupby(grouped_data, key=key_sort):
             group = list(group)
-            # print(group)
             if key:
-                # Remove used sort keys (only top-level sort key is used)
-
-                # Append new (reduced) sort key)
-                if key[-1]:
-                    # print("YES")
-                    # new_group = []
-                    for g in group:
-                        if "heading" not in g:
-                            data = g["data"]
-                        else:
-                            data = group
-                        # for k,v in g.items():
-                        #     if k == "data":
-                        #         comment_data = v
-                    # print(new_group)
-                    # pprint(group, sort_dicts=False, width=140)
-                    new_grouped_data.append(
-                        {"sort": key[:-2], "heading": key[-1], "data": data}
-                    )
-                else:
-                    print("NO")
-                    data = {k: v for k, v in group.items() if k == "data"}
-                    new_grouped_data.append({"sort": key[:-2], "data": data})
+                data = group
+                for g in group:
+                    if "heading" not in g:
+                        data = g["data"]
+                new_grouped_data.append(
+                    {"sort": key[:-1], "heading": key[-1], "data": data}
+                )
             else:
                 # If not sort key, grouping is complete, so extend the elements of
                 # the group iterable to keep the same.
@@ -125,25 +132,19 @@ def _following_groupings(grouped_data, key_sort, continue_sort=True):
     while continue_sort:
         grouped_data = _grouper(grouped_data, key_sort)
         continue_sort = any([x.get("sort") for x in grouped_data])
-        # continue_sort = False
-    # else:
-    #     # When complete, remove "sort" key from top level (not necessary, but for cleanup)
-    #     grouped_data = [
-    #         {k: v for k, v in x.items() if k != "sort"} for x in grouped_data
-    #     ]
 
     return grouped_data
 
 
 def group_data(comment_response_data, sort):
     key_sort = lambda x: x["sort"]
-    grouped_data = _initial_sort_and_group(comment_response_data, key_sort)
-    # pprint(grouped_data[3:5], sort_dicts=False, width=140)
-
+    grouped_data = _initial_sort(comment_response_data, sort["type"], key_sort)
+    grouped_data = _initial_group(grouped_data, key_sort)
+    sort_data = depth_of_sort(grouped_data)
+    grouped_data = _fix_empty_sort(grouped_data, sort_data)
     grouped_data = _following_groupings(grouped_data, key_sort)
-    # pprint(grouped_data[0:2], sort_dicts=False, width=146)
-    #print(grouped_data[0:2])
-    if sort["type"] == "count":
+
+    if sort["comment_sort"] == "count":
         grouped_data = _sort_by_comment_count(grouped_data)
-    # pprint(grouped_data[14:16], sort_dicts=False, width=140)
+
     return grouped_data
