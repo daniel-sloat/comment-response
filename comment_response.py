@@ -21,7 +21,6 @@ def main():
     )
 
     data = relevant_data.comment_data(sheet, config_file)
-    #print(data)
     comment_response_data = group.group_data(data, config_file["sort"])
 
     write_docx.commentsectiondoc(
@@ -31,9 +30,10 @@ def main():
     entry_list = automark.make_entry_list(data)
     automark.automarkdoc(entry_list)
 
-    print("Marking index entries using Microsoft Word...")
-    logtools.logging.info("Marking index entries using Microsoft Word...")
-    mark_index_entries()
+    if config_file["index"]["mark_index_entries"]:
+        print("Marking index entries using Microsoft Word...")
+        logtools.logging.info("Marking index entries using Microsoft Word...")
+        mark_index_entries(add_index=config_file["index"]["append_comment_index"])
 
     logtools.quit_logging()
 
