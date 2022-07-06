@@ -12,8 +12,12 @@ def main():
 
     config_file = load_toml_config.load_toml_config()
 
-    print(f"Reading sheet '{config_file['sheetname']}' from {config_file['filename']}...")
-    logtools.logging.info(f"Reading sheet '{config_file['sheetname']}' from {config_file['filename']}...")
+    print(
+        f"Reading sheet '{config_file['sheetname']}' from {config_file['filename']}..."
+    )
+    logtools.logging.info(
+        f"Reading sheet '{config_file['sheetname']}' from {config_file['filename']}..."
+    )
     sheet = Sheet.Sheet(
         filepath=config_file["filename"],
         sheetname=config_file["sheetname"],
@@ -25,7 +29,8 @@ def main():
 
     write_docx.commentsectiondoc(
         comment_response_data,
-        outline_level_start=config_file["other"]["outline_level"],
+        savename=config_file["doc"]["savename"],
+        **config_file["doc"]["custom"],
     )
     entry_list = automark.make_entry_list(data)
     automark.automarkdoc(entry_list)
@@ -33,7 +38,10 @@ def main():
     if config_file["index"]["mark_index_entries"]:
         print("Marking index entries using Microsoft Word...")
         logtools.logging.info("Marking index entries using Microsoft Word...")
-        mark_index_entries(add_index=config_file["index"]["append_comment_index"])
+        mark_index_entries(
+            filename=config_file["doc"]["savename"],
+            add_index=config_file["index"]["append_comment_index"],
+        )
 
     logtools.quit_logging()
 

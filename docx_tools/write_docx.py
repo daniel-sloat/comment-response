@@ -55,12 +55,21 @@ def _word_formats(tag: str, run) -> None:
     return None
 
 
-def _write_comments_and_responses(doc, group_data):
-    for comment in group_data["comment_data"]["comments"]:
+def _write_comments_and_responses(
+    doc,
+    group_data,
+    comment_intro_every_comment=True,
+    comment_intro="Comment",
+    response_intro="Response",
+    intro_sep=": ",
+):
+    # COMMENTS
+    for comment in (comments := group_data["comment_data"]["comments"]):
         paragraph = doc.add_paragraph(style="Comments")
-        intro = paragraph.add_run("Comment")
-        intro.underline = True
-        paragraph.add_run(": ")
+        if comment_intro_every_comment or len(comments) > 1:
+            intro = paragraph.add_run(comment_intro)
+            intro.underline = True
+            paragraph.add_run(intro_sep)
         for para_no, para in enumerate(comment.paragraphs):
             if para_no == 0:
                 for run in para.runs:
@@ -71,12 +80,13 @@ def _write_comments_and_responses(doc, group_data):
                 for run in para.runs:
                     r = paragraph.add_run(run.text)
                     _word_formats(run.props, r)
+    # RESPONSE
     for response in group_data["comment_data"]["response"]:
         paragraph = doc.add_paragraph(style="Response")
-        intro = paragraph.add_run("Agency Response")
-        intro.underline = True
+        intro = paragraph.add_run(response_intro)
+        intro.italic = True
         intro.bold = True
-        paragraph.add_run(": ")
+        paragraph.add_run(intro_sep)
         for para_no, para in enumerate(response.paragraphs):
             if para_no == 0:
                 for run in para.runs:
@@ -89,35 +99,55 @@ def _write_comments_and_responses(doc, group_data):
                     _word_formats(run.props, r)
 
 
-def _write_document(doc: docx.Document, top_level: list, outline_level_start: int) -> None:
-    def recursion(top_level, outline_level=1):
+def multiple_comments(
+    group,
+    indicate_quantity,
+    single_comment,
+    multiple,
+):
+    if indicate_quantity:
+        if len(group["data"]["comment_data"]["comments"]) > 1:
+            return multiple
+        else:
+            return single_comment
+    else:
+        return ""
+
+
+def _write_document(
+    doc: docx.Document,
+    top_level: list,
+    outline_level_start: int,
+    indicate_quantity=True,
+    single_comment="Comment: ",
+    multiple="Multiple Comments: ",
+    **kwargs,
+) -> None:
+    def recursion(top_level, outline_level=1, indicate_quantity=True):
         for group in top_level:
 
             if isinstance(group.get("data"), dict):
-                if len(group["data"]["comment_data"]["comments"]) > 1:
-                    multiple_comments = "Multiple Comments: "
-                else:
-                    multiple_comments = "Comment: "
-                doc.add_heading(multiple_comments + group["heading"], outline_level)
-                _write_comments_and_responses(doc, group["data"])
+                quantity = multiple_comments(group, indicate_quantity, single_comment, multiple)
+                doc.add_heading(quantity + group["heading"], outline_level)
+                _write_comments_and_responses(doc, group["data"], **kwargs)
             else:
                 doc.add_heading(group["heading"], outline_level)
-                recursion(group.get("data"), outline_level + 1)
+                recursion(group.get("data"), outline_level + 1, indicate_quantity)
 
-    recursion(top_level, outline_level_start)
+    recursion(top_level, outline_level_start, indicate_quantity)
     return None
 
 
 @logtools.log_write_docx
 def commentsectiondoc(
     nested_comment_responses: list,
-    outline_level_start: int = 1,
-    savename: str = "output\CommentResponseSection.docx",
+    savename: str = "output\CommentResponse.docx",
+    **kwargs,
 ) -> str:
-    print("Creating Comments and Response section document... ")
+    print("Creating Comments and Response document...")
     doc = docx.Document()
     _create_styles(doc)
-    _write_document(doc, nested_comment_responses, outline_level_start)
+    _write_document(doc, nested_comment_responses, **kwargs)
     doc.save(savename)
-    print("Comments and response section document created: " + savename)
+    print("Comments and response document created: " + savename)
     return savename
