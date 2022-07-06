@@ -5,36 +5,40 @@ from open_office_xml.dataclasses import RichText, Run
 
 
 def _relevant_data(sheet, config_columns, remove_double_spaces=True):
+    # This deals with some issues with getting data from a worksheet,
+    # while also setting up data to be usable.
     comment_response_data = []
     for row in sheet.group_by_row():
         sort_cols = []
         numbered_sort = []
         data = {}
+        
         for col_data in row:
-            
             for cat, col in config_columns["commentresponse"].items():
                 if col_data.col_name == col:
                     data[cat] = _clean_text(col_data.rich, remove_double_spaces)
             for cat, col in config_columns["other"].items():
                 if col_data.col_name == col:
                     data[cat] = col_data.value
-            
-            if col_data.col_name in config_columns["numbered_sort"]:
-                if col_data.value is None:
-                    col_data.value = float("inf")
-                numbered_sort.append(col_data.value)
-            if col_data.col_name in config_columns["sort"]:
-                if col_data.value is None:
-                    col_data.value = ""
-                sort_cols.append(col_data.value)
-
+                    
+            for column in config_columns["numbered_sort"]:
+                if column == col_data.col_name:
+                    if col_data.value is None:
+                        numbered_sort.append(float("inf"))
+                    else:
+                        numbered_sort.append(col_data.value)
+            for column in config_columns["sort"]:
+                if column == col_data.col_name:
+                    if col_data.value is None:
+                        sort_cols.append("")
+                    else:
+                        sort_cols.append(col_data.value)
 
         while len(sort_cols) < len(config_columns["sort"]):
             sort_cols.append("")
-        # Make both sort columns equal in length. Assumes sort_cols will be
-        # filled completely and correctly.
         while len(numbered_sort) < len(sort_cols):
             numbered_sort.append(float("inf"))
+            
         data["numbered_sort"] = numbered_sort
         data["sort"] = sort_cols
 
