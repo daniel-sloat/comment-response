@@ -1,3 +1,5 @@
+import logging
+from pprint import pformat
 import docx
 from docx.enum.text import WD_UNDERLINE
 from docx.enum.style import WD_STYLE_TYPE
@@ -127,7 +129,9 @@ def _write_document(
         for group in top_level:
 
             if isinstance(group.get("data"), dict):
-                quantity = multiple_comments(group, indicate_quantity, single_comment, multiple)
+                quantity = multiple_comments(
+                    group, indicate_quantity, single_comment, multiple
+                )
                 doc.add_heading(quantity + group["heading"], outline_level)
                 _write_comments_and_responses(doc, group["data"], **kwargs)
             else:
@@ -145,6 +149,9 @@ def commentsectiondoc(
     **kwargs,
 ) -> None:
     doc = docx.Document()
+    logging.info(
+        "Using custom doc configuration:\n" + pformat(kwargs, sort_dicts=False)
+    )
     _create_styles(doc)
     _write_document(doc, nested_comment_responses, **kwargs)
     doc.save(savename)

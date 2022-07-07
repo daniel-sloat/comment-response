@@ -50,17 +50,6 @@ class SheetFunctions:
         col_name, row_num = regex.search(position).groups()
         col_num = excel_col_name_to_number(col_name)
         return col_num, int(row_num)
-    
-    def _get_cell_position2(self, column):
-        regex = re.compile(r"^(?P<letters>\w*?)(?P<numbers>\d*)$")
-        if len(column) == 1:
-            column = column[0]
-        else:
-            return 0,0
-        position = column[0].xpath("string(@r)", namespaces=self.NAMESPACES)
-        col_name, row_num = regex.search(position).groups()
-        col_num = excel_col_name_to_number(col_name)
-        return col_num, int(row_num)
 
     def _get_cell_value_and_dtype(self, column):
         dtype = column.xpath("string(@t)", namespaces=self.NAMESPACES)
@@ -95,14 +84,6 @@ class SheetFunctions:
     def _get_cell_data(self, row):
         cols = []
         columns = (column for column in row.xpath("w:c", namespaces=self.NAMESPACES))
-        for column in columns:
-            col_num, row_num = self._get_cell_position(column)
-            value, dtype = self._get_cell_value_and_dtype(column)
-            cols.append(Cell(col=col_num, row=row_num, value=value, xl_dtype=dtype))
-        return cols
-    
-    def _get_cell_data2(self, columns):
-        cols = []
         for column in columns:
             col_num, row_num = self._get_cell_position(column)
             value, dtype = self._get_cell_value_and_dtype(column)

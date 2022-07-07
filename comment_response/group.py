@@ -140,8 +140,10 @@ def _following_groupings(
 
     return grouped_data
 
+from pprint import pformat
 
 def group_data(comment_response_data, sort):
+    logging.info("Using sort configuration:\n" + pformat(sort, sort_dicts=False))
     grouped_data = _initial_sort(comment_response_data, sort["type"])
     grouped_data = _initial_group(grouped_data)
     grouped_data = _following_groupings(grouped_data)
