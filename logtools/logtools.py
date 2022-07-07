@@ -17,7 +17,7 @@ def initialize_logging(
         # Print logger message to console
         console = logging.StreamHandler()
         console.setLevel(logging.INFO)
-        formatter = logging.Formatter("%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s")
+        formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
         console.setFormatter(formatter)
         logging.getLogger().addHandler(console)
     

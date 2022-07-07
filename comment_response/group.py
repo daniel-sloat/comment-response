@@ -98,7 +98,7 @@ def _trim_headings(grouped_data, sort_data):
     trimmed_data = []
     for key, group in groupby(grouped_data, key=lambda x: x["sort"]):
         group = list(group)
-        if sort_data[key[:-1]] == 1 and key[-1] == "":
+        if sort_data.get(key[:-1]) == 1 and key[-1] == "":
             for g in group:
                 g["sort"] = g["sort"][:-1]
             trimmed_data.extend(group)
