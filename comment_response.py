@@ -12,12 +12,6 @@ def main():
 
     config_file = load_toml_config.load_toml_config()
 
-    print(
-        f"Reading sheet '{config_file['sheetname']}' from {config_file['filename']}..."
-    )
-    logtools.logging.info(
-        f"Reading sheet '{config_file['sheetname']}' from {config_file['filename']}..."
-    )
     sheet = Sheet.Sheet(
         filepath=config_file["filename"],
         sheetname=config_file["sheetname"],
@@ -36,8 +30,6 @@ def main():
     automark.automarkdoc(entry_list)
 
     if config_file["index"]["mark_index_entries"]:
-        print("Marking index entries using Microsoft Word...")
-        logtools.logging.info("Marking index entries using Microsoft Word...")
         mark_index_entries(
             filename=config_file["doc"]["savename"],
             add_index=config_file["index"]["append_comment_index"],

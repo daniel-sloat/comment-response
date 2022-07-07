@@ -143,11 +143,9 @@ def commentsectiondoc(
     nested_comment_responses: list,
     savename: str = "output\CommentResponse.docx",
     **kwargs,
-) -> str:
-    print("Creating Comments and Response document...")
+) -> None:
     doc = docx.Document()
     _create_styles(doc)
     _write_document(doc, nested_comment_responses, **kwargs)
     doc.save(savename)
-    print("Comments and response document created: " + savename)
     return savename

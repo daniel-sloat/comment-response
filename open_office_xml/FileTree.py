@@ -4,7 +4,6 @@ import re
 from pathlib import Path
 from zipfile import ZipFile
 from functools import cached_property
-from logtools import logtools
 
 
 class FileTree:

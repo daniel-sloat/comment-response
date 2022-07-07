@@ -19,7 +19,6 @@ def automarkdoc(
 ) -> str:
     # AutoMark document is document with two col table for automatically
     # marking index entries in another document.
-    print("Creating AutoMark document... ")
 
     def _write_table(doc, entry_list):
         # Use table._cells to "pop" out the cells from the table, limiting
@@ -36,5 +35,4 @@ def automarkdoc(
     doc = docx.Document()
     _write_table(doc, entry_list)
     doc.save(savename)
-    print("AutoMark document created: " + savename)
     return savename

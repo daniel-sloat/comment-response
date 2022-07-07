@@ -1,9 +1,9 @@
 from functools import cache
 from itertools import groupby
+import logging
 import re
 
 from lxml import etree
-from lxml.etree import XPath
 
 from .dataclasses import SheetData
 from .FileTree import FileTree
@@ -15,6 +15,8 @@ class Sheet(FileTree, SheetFunctions):
         super(Sheet, self).__init__(filepath)
         self.sheetname = sheetname
         self.header_row = header_row
+
+        logging.info(f"Reading sheet '{self.sheetname}' from {self.filepath}...")
 
     @property
     @cache
