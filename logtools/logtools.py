@@ -3,8 +3,9 @@ import functools
 
 
 def initialize_logging(
-    start_text: str="Logging initialized."
-):
+    start_text: str="Logging initialized.",
+    print_console: bool=True,    
+) -> None:
     logging.basicConfig(
         filename="log.log",
         filemode="w",
@@ -12,18 +13,17 @@ def initialize_logging(
         datefmt=r"%Y-%m-%d %H:%M:%S",
         format="%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s",
     )
+    if print_console:
+        # Print logger message to console
+        console = logging.StreamHandler()
+        console.setLevel(logging.INFO)
+        formatter = logging.Formatter("%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s")
+        console.setFormatter(formatter)
+        logging.getLogger().addHandler(console)
+    
     logging.info(start_text)
     return None
 
-
-def log_read_file(func):
-    @functools.wraps(func)
-    def wrapper(file_path):
-        logging.info(f"Reading file: {file_path}")
-        result = func(file_path)
-        return result
-
-    return wrapper
 
 def log_automark(func):
     @functools.wraps(func)
