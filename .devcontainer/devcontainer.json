@@ -36,6 +36,7 @@
 				"ms-python.python",
 				"tamasfe.even-better-toml",
 				"dotjoshjohnson.xml",
+				"grapecity.gc-excelviewer",
 				"ms-python.vscode-pylance"
 			]
 		}
