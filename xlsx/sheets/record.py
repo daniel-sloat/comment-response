@@ -20,7 +20,7 @@ class Record:
         return self.cells[key]
 
     def __iter__(self):
-        return iter(self.cells.items())
+        return iter(self.cells)
 
     def __len__(self):
         return int(self.element.xpath("string(@spans)").split(":")[1])
