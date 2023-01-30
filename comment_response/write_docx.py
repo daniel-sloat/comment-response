@@ -7,7 +7,7 @@ from docx.document import Document
 from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.text import WD_UNDERLINE
 from docx.shared import Inches, Pt
-from comment_response.group_records import GroupRecords
+from comment_response.group.group_records import GroupRecords
 
 from comment_response.records import Records
 from xlsx.sheets.datasheet import DataSheet
