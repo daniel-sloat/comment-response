@@ -1,11 +1,11 @@
 from functools import cached_property
 
-from xlsx.cell.cell import Cell, DataCell
+from xlsx.cell.cell import Cell
+from xlsx.cell.datacell import DataCell
+from xlsx.helpers.xl_position import xl_position_reverse
 from xlsx.ooxml_ns import ns
 from xlsx.sheets.record import Record
 from xlsx.sheets.sheet import Sheet
-
-from xlsx.helpers.xl_position import xl_position_reverse
 
 
 class DataSheet(Sheet):
@@ -56,4 +56,7 @@ class DataSheet(Sheet):
     @property
     def records(self):
         xpath = "w:sheetData/w:row[@r>$_r]"
-        return [Record(el, self) for el in self.xml.xpath(xpath, _r=self._hrow, **ns)]
+        return {
+            int(el.xpath("string(@r)")): Record(el, self)
+            for el in self.xml.xpath(xpath, _r=self._hrow, **ns)
+        }

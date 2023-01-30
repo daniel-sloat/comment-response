@@ -21,17 +21,14 @@ A single, formatted comment-response docx file grouped and sorted as specified.
 
 ## How to Use
 
-- Use Python 3.10+
+- Use Python 3.11+
 - Clone the repository or download the repository as a zip file and extract.
-- Setup virtual environment (Windows-specific):
-  - Using terminal (e.g., Command Prompt, PowerShell):
-    - Navigate to cloned/extracted folder.
-    - Enter:
+- Setup virtual environment:
 
-          python3.10 -m venv env
-          env\Scripts\activate
-          pip install -r requirements.txt
-          
+        python -m venv env
+        env\Scripts\activate
+        pip install -r requirements.txt
+
 - Customize configuration file (config.toml) in text-editer:
   - ***IMPORTANT***: Rename config.SAMPLE.toml to config.toml!
 
@@ -45,3 +42,11 @@ A single, formatted comment-response docx file grouped and sorted as specified.
 
 - [daniel-sloat\comment-extract](https://github.com/daniel-sloat/comment-extract)
   - Produces an xlsx spreadsheet for grouping and response, for input into the comment-response script.
+
+## Further Reading
+
+- https://rsmith.home.xs4all.nl/howto/reading-xlsx-files-with-python.html
+- https://virantha.com/2013/08/16/reading-and-writing-microsoft-word-docx-files-with-python/
+- https://blog.adimian.com/2018/09/04/fast-xlsx-parsing-with-python/
+- https://www.toptal.com/xml/an-informal-introduction-to-docx
+- https://stackoverflow.com/questions/40410269/xpath-to-select-all-nodes-between-two-text-markers-in-ooxml

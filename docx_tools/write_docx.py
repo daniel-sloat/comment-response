@@ -1,11 +1,12 @@
-import logging
-from pprint import pformat
+"""Old comment-section write module."""
+
 import docx
-from docx.enum.text import WD_UNDERLINE
 from docx.enum.style import WD_STYLE_TYPE
+from docx.enum.text import WD_UNDERLINE
 from docx.shared import Inches, Pt
 
-from logtools import logtools
+PARAGRAPH_STYLE = WD_STYLE_TYPE.PARAGRAPH  # pylint: disable=no-member
+DOUBLE_UNDERLINE_STYLE = WD_UNDERLINE.DOUBLE  # pylint: disable=no-member
 
 
 def _create_styles(doc: docx.Document) -> None:
@@ -20,7 +21,7 @@ def _create_styles(doc: docx.Document) -> None:
         keep_with_next: bool = False,
     ) -> None:
         styles = doc.styles
-        style = styles.add_style(name, WD_STYLE_TYPE.PARAGRAPH)
+        style = styles.add_style(name, PARAGRAPH_STYLE)
         style.base_style = styles[base_style]
         style.paragraph_format.left_indent = Inches(left_indent)
         style.paragraph_format.space_before = Pt(space_before)
@@ -36,8 +37,8 @@ def _create_styles(doc: docx.Document) -> None:
 
 
 def _word_formats(tag: str, run) -> None:
-    for f in tag:
-        match f:
+    for _format in tag:
+        match _format:
             case "b":
                 run.font.bold = True
             case "i":
@@ -45,7 +46,7 @@ def _word_formats(tag: str, run) -> None:
             case "u":
                 run.font.underline = True
             case "w":
-                run.font.underline = WD_UNDERLINE.DOUBLE
+                run.font.underline = DOUBLE_UNDERLINE_STYLE
             case "s":
                 run.font.strike = True
             case "z":
@@ -75,13 +76,13 @@ def _write_comments_and_responses(
         for para_no, para in enumerate(comment.paragraphs):
             if para_no == 0:
                 for run in para.runs:
-                    r = paragraph.add_run(run.text)
-                    _word_formats(run.props, r)
+                    added_run = paragraph.add_run(run.text)
+                    _word_formats(run.props, added_run)
             else:
                 paragraph = doc.add_paragraph(style="Comments")
                 for run in para.runs:
-                    r = paragraph.add_run(run.text)
-                    _word_formats(run.props, r)
+                    added_run = paragraph.add_run(run.text)
+                    _word_formats(run.props, added_run)
     # RESPONSE
     for response in group_data["comment_data"]["response"]:
         paragraph = doc.add_paragraph(style="Response")
@@ -92,13 +93,13 @@ def _write_comments_and_responses(
         for para_no, para in enumerate(response.paragraphs):
             if para_no == 0:
                 for run in para.runs:
-                    r = paragraph.add_run(run.text)
-                    _word_formats(run.props, r)
+                    added_run = paragraph.add_run(run.text)
+                    _word_formats(run.props, added_run)
             else:
                 paragraph = doc.add_paragraph(style="Response")
                 for run in para.runs:
-                    r = paragraph.add_run(run.text)
-                    _word_formats(run.props, r)
+                    added_run = paragraph.add_run(run.text)
+                    _word_formats(run.props, added_run)
 
 
 def multiple_comments(
@@ -142,16 +143,12 @@ def _write_document(
     return None
 
 
-@logtools.log_write_docx
 def commentsectiondoc(
     nested_comment_responses: list,
-    savename: str = "output\CommentResponse.docx",
+    savename: str = r"output\CommentResponse.docx",
     **kwargs,
 ) -> None:
     doc = docx.Document()
-    logging.info(
-        "Using custom doc configuration:\n" + pformat(kwargs, sort_dicts=False)
-    )
     _create_styles(doc)
     _write_document(doc, nested_comment_responses, **kwargs)
     doc.save(savename)

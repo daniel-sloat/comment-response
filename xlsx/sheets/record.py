@@ -1,8 +1,7 @@
 from functools import cached_property
 
-from xlsx.cell.cell import DataCell
+from xlsx.cell.datacell import DataCell
 from xlsx.ooxml_ns import ns
-from xlsx.helpers.xl_position import xl_position_reverse
 
 
 class Record:
@@ -11,28 +10,25 @@ class Record:
         self._sheet = sheet
         self.row_num = self.element.xpath("string(@r)", **ns)
         self.record_num = str(int(self.row_num) - int(self._sheet._hrow) - 1)
-        self.header = self._sheet.header
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(num={self.record_num},row={self.row_num})"
+        return f"{self.__class__.__name__}(row={self.row_num})"
 
     def __getitem__(self, key):
-        return self.cells[key]
+        return self.col.get(key)
 
     def __iter__(self):
-        return iter(self.cells)
+        return iter(self.col)
 
     def __len__(self):
-        return int(self.element.xpath("string(@spans)").split(":")[1])
+        return len(self.col)
+
+    def __lt__(self, other):
+        return self.record_num < other.record_num
 
     @cached_property
-    def cells(self):
-        cell = []
-        for i in range(len(self)):
-            ref = xl_position_reverse(i) + self.row_num
-            cell.extend(self.element.xpath("w:c[@r=$_r]", _r=ref, **ns))
+    def col(self):
         return {
             cell.column: cell
-            for cell in [DataCell(c, self._sheet) for c in cell]
-            if cell.column
+            for cell in [DataCell(c, self._sheet) for c in self.element]
         }

@@ -1,21 +1,16 @@
-from pprint import pprint
+"""Main script"""
 
+from comment_response.write_docx import CommentSection
 from config import toml_config
 from xlsx.workbook import Workbook
-from comment_response.data_prep import PrepData
 
 
 def main():
     config = toml_config.load()
     book = Workbook(config["filename"])
     sheet = book.datasheets[config["sheetname"]]
-    data = PrepData(sheet, **config)
-    grouped = data.grouped_records()
-    pprint(list(grouped), sort_dicts=False, width=100)
-
-    # Comments-response extracted
-    # Write comments-section doc
-    # Write automark doc
+    comment_section = CommentSection(sheet, **config)
+    comment_section.write()
 
 
 if __name__ == "__main__":
