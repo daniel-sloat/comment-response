@@ -38,7 +38,7 @@ class Cell:
         return 0
 
     def __lt__(self, other):
-        return self.position < other.position
+        return self.value < other.value
 
     @property
     def reference(self):

@@ -12,7 +12,9 @@ class GroupRecords:
         self._config = config
         self.title_sort = config.get("columns", {}).get("sort", [])
         self.ordered_sort = config.get("columns", {}).get("numbered_sort", [])
-        # self.sort_by_comment_count = True
+        self.sort_by_comment_count = config.get("sort", {}).get(
+            "by_comment_count", True
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}(records={len(self._sheet)},sort={self.sort})"
@@ -22,4 +24,8 @@ class GroupRecords:
         return tuple(zip(self.ordered_sort, self.title_sort))
 
     def group(self):
-        return group_records(self._sheet.records.values(), self.sort)
+        return group_records(
+            self._sheet.records.values(),
+            self.sort,
+            count_sort=self.sort_by_comment_count,
+        )

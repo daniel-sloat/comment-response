@@ -58,50 +58,77 @@ def word_formats(tag: dict | None, run) -> None:
                 # run.font.subscript = True
 
 
-def recursive_write(document: Document, grouped_records, config, outline_level):
-    outline_level += 1
-    for key, data in grouped_records.items():
-        if key.title:
-            document.add_heading(key.title, level=outline_level)
-        if isinstance(data, dict):
-            recursive_write(document, data, config, outline_level)
-        else:
-            records = Records(data, config)
-            for comment in records.comments:
-                paragraph = document.add_paragraph(style="Comments")
-                if len(records.comments) > 1:
-                    intro = paragraph.add_run("Comment")
-                    intro.underline = True
-                    paragraph.add_run(": ")
-                for para_no, para in enumerate(comment):
-                    if para_no == 0:
-                        for run in para:
-                            text, props = run
-                            added_run = paragraph.add_run(text)
-                            word_formats(props, added_run)
-                    else:
-                        paragraph = document.add_paragraph(style="Comments")
-                        for run in para:
-                            text, props = run
-                            added_run = paragraph.add_run(text)
-                            word_formats(props, added_run)
-            paragraph = document.add_paragraph(style="Response")
-            intro = paragraph.add_run("Agency Response")
-            intro.italic = True
-            intro.bold = True
+def write_comments(document, records):
+    for comment in records.comments:
+        paragraph = document.add_paragraph(style="Comments")
+        if len(records.comments) > 1:
+            intro = paragraph.add_run("Comment")
+            intro.underline = True
             paragraph.add_run(": ")
-            for para_no, para in enumerate(records.response):
-                if para_no == 0:
-                    for run in para:
-                        text, props = run
-                        added_run = paragraph.add_run(text)
-                        word_formats(props, added_run)
+        for para_no, para in enumerate(comment):
+            if para_no == 0:
+                for run in para:
+                    text, props = run
+                    added_run = paragraph.add_run(text)
+                    word_formats(props, added_run)
+            else:
+                paragraph = document.add_paragraph(style="Comments")
+                for run in para:
+                    text, props = run
+                    added_run = paragraph.add_run(text)
+                    word_formats(props, added_run)
+
+
+def write_response(document, records):
+    paragraph = document.add_paragraph(style="Response")
+    intro = paragraph.add_run("Agency Response")
+    intro.italic = True
+    intro.bold = True
+    paragraph.add_run(": ")
+    for para_no, para in enumerate(records.response):
+        if para_no == 0:
+            for run in para:
+                text, props = run
+                added_run = paragraph.add_run(text)
+                word_formats(props, added_run)
+        else:
+            paragraph = document.add_paragraph(style="Response")
+            for run in para:
+                text, props = run
+                added_run = paragraph.add_run(text)
+                word_formats(props, added_run)
+
+
+def recursive_write(document: Document, grouped_records, config, outline_level=0):
+    outline_level += 1
+    for item in grouped_records:
+        match item:
+            case {"heading": heading, "data": [{"records": records}]}:
+                # Base case (normal)
+                multiple = len(records) > 1
+                if multiple:
+                    document.add_heading(
+                        f"Multiple Comments: {heading.title}", level=outline_level
+                    )
                 else:
-                    paragraph = document.add_paragraph(style="Response")
-                    for run in para:
-                        text, props = run
-                        added_run = paragraph.add_run(text)
-                        word_formats(props, added_run)
+                    document.add_heading(
+                        f"Comment: {heading.title}", level=outline_level
+                    )
+
+                records = Records(records, config)
+                write_comments(document, records)
+                write_response(document, records)
+
+            case {"heading": heading, "data": data}:
+                # Recursive case (only writes heading)
+                document.add_heading(heading.title, level=outline_level)
+                recursive_write(document, data, config, outline_level)
+
+            case {"records": records}:
+                # Base case (for when records are not fully classified)
+                records = Records(records, config)
+                write_comments(document, records)
+                write_response(document, records)
 
 
 cs_repr = Repr()
@@ -126,5 +153,7 @@ class CommentSection:
         doc: Document = docx.Document()
         style_maker(doc, "Comments")
         style_maker(doc, "Response", left_indent=0.5, next_style="Response")
-        recursive_write(doc, self.group_records.group(), self.config, self.outline_level)
+        recursive_write(
+            doc, self.group_records.group(), self.config, self.outline_level
+        )
         doc.save(filename)

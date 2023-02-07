@@ -18,7 +18,7 @@ class Sheets:
     def __repr__(self):
         return f"{self.__class__.__name__}(names={tuple(self.sheets.keys())})"
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> Sheet:
         return self.sheets[key]
 
     def __iter__(self):
@@ -34,3 +34,6 @@ class DataSheets(Sheets):
     def __init__(self, workbook):
         super().__init__(workbook)
         self.sheets = {_name: DataSheet(_name, self) for _name in self.sheet_names}
+
+    def __getitem__(self, key) -> DataSheet:
+        return self.sheets[key]
