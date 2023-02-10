@@ -5,6 +5,8 @@ from pathlib import Path
 from zipfile import ZipFile
 
 from lxml import etree
+from lxml.etree import _ElementTree
+from xlsx.sheets.newdatasheet import NewDataSheet
 
 from xlsx.sheets.shared_strings import SharedStrings
 from xlsx.sheets.sheets import DataSheets, Sheets
@@ -26,10 +28,13 @@ class Workbook:
         return f"Workbook(file='{self.file}')"
 
     @cached_property
-    def xml(self):
-        with ZipFile(self.file.absolute(), "r") as z:
+    def xml(self) -> dict[str:_ElementTree]:
+        with ZipFile(self.file.absolute(), "r") as xlsx:
             return {
-                filename: etree.fromstring(z.read(filename))
-                for filename in z.namelist()
+                filename: etree.fromstring(xlsx.read(filename))
+                for filename in xlsx.namelist()
                 if ".xml" in filename
             }
+
+    def datasheet(self, sheetname, header_row):
+        return NewDataSheet(sheetname, header_row)

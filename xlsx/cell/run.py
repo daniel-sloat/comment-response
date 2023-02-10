@@ -9,22 +9,26 @@ from xlsx.ooxml_ns import ns
 class Run:
     """Rich text run formatting."""
 
-    def __init__(self, element, book):
-        self._element = element
-        self._book = book
+    def __init__(self, text, props):
+        self.text = text
+        self.props = props
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(text={Repr().repr(self.text)})"
+        return (
+            f"{self.__class__.__name__}("
+            f"text={Repr().repr(self.text)}, "
+            f"props={Repr().repr(self.props)})"
+        )
 
     def __str__(self):
         return self.text
 
-    @property
-    def text(self):
-        return self._element.xpath("string(.)", **ns)
-
-    @property
-    def props(self):
-        prop = self._element.xpath("parent::w:r/w:rPr", **ns)
-        if len(prop):
-            return get_attrib(prop[0])
+    @classmethod
+    def from_element(cls, element):
+        text = element.xpath("string(.)", **ns)
+        _props = element.xpath("parent::w:r/w:rPr", **ns)
+        if len(_props):
+            props = get_attrib(_props[0])["rPr"]
+        else:
+            props = None
+        return cls(text, props)

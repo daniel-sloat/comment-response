@@ -5,8 +5,8 @@ from config import toml_config
 from xlsx.workbook import Workbook
 
 # Final steps:
+# - Fix formatting
 # - Implement remaining config
-# - Remove any leading or trailing spaces from end of paragraphs
 # - Implement tagging system for comments
 # - Fix automark to use tagging system
 # - Implement logging
@@ -15,9 +15,9 @@ from xlsx.workbook import Workbook
 def main():
     config = toml_config.load()
     book = Workbook(config["filename"])
+    # print(book.datasheet(config["sheetname"], header_row=1))
     sheet = book.datasheets[config["sheetname"]]
-    comment_section = CommentSection(sheet, **config)
-    comment_section.write()
+    CommentSection(sheet, **config).write()
 
 
 if __name__ == "__main__":

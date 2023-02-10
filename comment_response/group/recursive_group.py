@@ -11,9 +11,9 @@ ColumnSort: TypeAlias = tuple[int, str]
 ColumnTuples: TypeAlias = tuple[tuple[str, str], ...]
 
 
-def col_sort(record, col_sort) -> ColSort:
-    """Sorts by single key column. (0, "Text")"""
-    number_col, title_col = col_sort
+def col_sort(record, columns) -> ColSort:
+    """Sorts by single key column."""
+    number_col, title_col = columns
     title = str(record.col.get(title_col, ""))
     num = int(record.col.get(number_col, 0))
     return ColSort(num, title)

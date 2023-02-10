@@ -1,15 +1,16 @@
 from functools import cached_property
 
+import lxml.etree
 from xlsx.cell.datacell import DataCell
 from xlsx.ooxml_ns import ns
 
 
 class Record:
-    def __init__(self, element, sheet):
+    def __init__(self, element: lxml.etree._Element, sheet):
         self.element = element
         self._sheet = sheet
         self.row_num = self.element.xpath("string(@r)", **ns)
-        self.record_num = str(int(self.row_num) - int(self._sheet._hrow) - 1)
+        self.record_num = str(int(self.row_num) - int(self._sheet.header_row) - 1)
 
     def __repr__(self):
         return f"{self.__class__.__name__}(row={self.row_num})"

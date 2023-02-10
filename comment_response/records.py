@@ -1,35 +1,24 @@
 """Provides access to grouped record data."""
 
+from comment_response.comment import Comments
+from comment_response.response import Response
+from xlsx.sheets.record import Record
+
 
 class Records:
     """Group of records."""
 
-    def __init__(self, records, config):
+    def __init__(self, records: list[Record], config: dict):
         self.records = records
-        self.comment_col = config["columns"]["commentresponse"]["comment"]
-        self.response_col = config["columns"]["commentresponse"]["response"]
+        self.config = config
 
     def __repr__(self):
         return f"Records(count={len(self.records)})"
 
     @property
     def comments(self):
-        new = []
-        for record in self.records:
-            com = record.col.get(self.comment_col)
-            if com:  # Should be one comment per row, but just in case
-                rich_text = com.value
-                if rich_text:
-                    new.append(rich_text.paragraphs)
-        return new
+        return Comments(self.records, self.config).prepared()
 
     @property
     def response(self):
-        new = []
-        for record in self.records:
-            resp = record.col.get(self.response_col)
-            if resp:
-                rich_text = resp.value
-                if rich_text:
-                    new.extend(rich_text.paragraphs)
-        return new
+        return Response(self.records, self.config).prepared()

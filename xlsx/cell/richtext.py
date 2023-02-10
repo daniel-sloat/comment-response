@@ -4,18 +4,22 @@ import re
 from itertools import groupby
 from reprlib import Repr
 
+from lxml.etree import _Element
+
+from xlsx.cell.paragraph import Paragraph, Paragraphs
 from xlsx.cell.run import Run
 from xlsx.ooxml_ns import ns
+# from xlsx.workbook import Workbook
 
 
 class RichText:
     """Provides rich text formatting for cell."""
 
-    def __init__(self, element, book):
+    def __init__(self, element: _Element, book):
         self.element = element
         self._book = book
         self.runs = [
-            Run(el, self._book) for el in self.element.xpath("w:t|w:r/w:t", **ns)
+            Run.from_element(el) for el in self.element.xpath("w:t|w:r/w:t", **ns)
         ]
 
     def __repr__(self):
@@ -34,19 +38,20 @@ class RichText:
         return self.text
 
     @property
-    def text(self):
+    def text(self) -> str:
         return "".join(run.text for run in self.runs)
 
     @property
-    def paragraphs(self):
-        feed = (
-            (txt, run.props)
+    def paragraphs(self) -> Paragraphs:
+        _feed = (
+            Run(txt, run.props)
             for run in self.runs
             for txt in re.split("(\n)", run.text)
             if txt
         )
-        new = []
-        for key, group in groupby(feed, key=lambda run: run[0] != "\n"):
-            if key:
-                new.append(list(group))
-        return new
+        _paragraphs = [
+            Paragraph(run_group)
+            for key, run_group in groupby(_feed, key=lambda run: run.text != "\n")
+            if key
+        ]
+        return Paragraphs(_paragraphs)
