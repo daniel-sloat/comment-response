@@ -11,6 +11,7 @@ from xlsx.sheets.newdatasheet import NewDataSheet
 from xlsx.sheets.shared_strings import SharedStrings
 from xlsx.sheets.sheets import DataSheets, Sheets
 from xlsx.styles.styles import Styles
+from xlsx.xml import XLSXXML
 
 
 # @log_filename
@@ -18,7 +19,8 @@ class Workbook:
     """Opens xlsx workbook and creates XML file tree"""
 
     def __init__(self, filename):
-        self.file = Path(filename)
+        self.file = filename
+        self.xlsx = XLSXXML(self.file)
         self.styles = Styles(self)
         self.sharedstrings = SharedStrings(self)
         self.sheets = Sheets(self)
@@ -29,12 +31,13 @@ class Workbook:
 
     @cached_property
     def xml(self) -> dict[str:_ElementTree]:
-        with ZipFile(self.file.absolute(), "r") as xlsx:
+        with ZipFile(self.file, "r") as xlsx:
             return {
                 filename: etree.fromstring(xlsx.read(filename))
                 for filename in xlsx.namelist()
                 if ".xml" in filename
             }
 
-    def datasheet(self, sheetname, header_row):
-        return NewDataSheet(sheetname, header_row)
+    # def datasheet(self, sheetname, header_row):
+    #     sheet_xml = self.xml[sheetname]
+    #     return NewDataSheet(sheetname, sheet_xml, header_row)

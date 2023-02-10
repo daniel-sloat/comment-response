@@ -132,7 +132,7 @@ def write_response(document: Document, records: Records, config: dict) -> None:
                     word_formats(run.props, added_run)
 
 
-def indicate_quantity(records, config):
+def indicate_quantity(records: Records, config: dict) -> str:
     if config["doc"]["custom"]["indicate_quantity"]:
         multiple = len(records.comments) > 1
         if multiple:
