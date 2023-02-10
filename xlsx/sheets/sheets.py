@@ -38,7 +38,7 @@ class Sheets:
 class DataSheets(Sheets):
     """Representation of worksheets as table (structured), with header."""
 
-    def __init__(self, workbook):
+    def __init__(self, workbook: "Workbook"):
         super().__init__(workbook)
         self.sheets = {_name: DataSheet(_name, self) for _name in self.sheet_names}
 

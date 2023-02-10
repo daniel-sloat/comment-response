@@ -1,4 +1,5 @@
-from pathlib import Path
+"""XLSX OOXML Document File Access"""
+
 from zipfile import ZipFile
 
 from lxml import etree
@@ -8,6 +9,8 @@ from xlsx.ooxml_ns import ns
 
 
 class XLSXXML:
+    """Access XML files contained within XLSX file."""
+
     def __init__(self, filename: str):
         self.file = filename
         with ZipFile(self.file, "r") as xlsx:

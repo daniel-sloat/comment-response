@@ -42,4 +42,3 @@ class NewDataSheet(NewSheet):
     ):
         super().__init__(sheetname, workbook_xml, workbook_rels, sheet_xml)
         self.header_row = header_row
-

@@ -1,6 +1,7 @@
 """DataSheet"""
 
 from functools import cached_property
+from typing import TYPE_CHECKING
 
 from xlsx.cell.cell import Cell
 from xlsx.cell.datacell import DataCell
@@ -8,13 +9,15 @@ from xlsx.helpers.xl_position import xl_position_reverse
 from xlsx.ooxml_ns import ns
 from xlsx.sheets.record import Record
 from xlsx.sheets.sheet import Sheet
-# from xlsx.sheets.sheets import Sheets
+
+if TYPE_CHECKING:
+    from xlsx.sheets.sheets import Sheets
 
 
 class DataSheet(Sheet):
     """Representation of worksheet as table (structured), with header."""
 
-    def __init__(self, _name: str, sheets, header_row: int | str = 1):
+    def __init__(self, _name: str, sheets: "Sheets", header_row: int | str = 1):
         super().__init__(_name, sheets)
         self.header_row = int(header_row)
 

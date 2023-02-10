@@ -1,12 +1,10 @@
 """Class Workbook"""
 
 from functools import cached_property
-from pathlib import Path
 from zipfile import ZipFile
 
 from lxml import etree
 from lxml.etree import _ElementTree
-from xlsx.sheets.newdatasheet import NewDataSheet
 
 from xlsx.sheets.shared_strings import SharedStrings
 from xlsx.sheets.sheets import DataSheets, Sheets

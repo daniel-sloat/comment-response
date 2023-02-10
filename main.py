@@ -5,11 +5,11 @@ from config import toml_config
 from xlsx.workbook import Workbook
 
 # Final steps:
-# - Fix formatting
-# - Implement remaining config
+# - Implement remaining config (remove_all_double_spaces, header_row)
 # - Implement tagging system for comments
 # - Fix automark to use tagging system
 # - Implement logging
+# - Fix typing issues
 
 
 def main():

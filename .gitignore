@@ -1,0 +1,7 @@
+__pycache__/
+env/
+input/
+output/
+config.toml
+*.log
+*.ipynb
