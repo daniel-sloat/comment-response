@@ -45,8 +45,17 @@ A single, formatted comment-response docx file grouped and sorted as specified.
 
 ## Further Reading
 
+### DOCX/OOXML
+
 - https://rsmith.home.xs4all.nl/howto/reading-xlsx-files-with-python.html
 - https://virantha.com/2013/08/16/reading-and-writing-microsoft-word-docx-files-with-python/
 - https://blog.adimian.com/2018/09/04/fast-xlsx-parsing-with-python/
 - https://www.toptal.com/xml/an-informal-introduction-to-docx
+- https://github.com/booktype/python-ooxml/blob/master/ooxml/parse.py
+
+### XPath
+
 - https://stackoverflow.com/questions/40410269/xpath-to-select-all-nodes-between-two-text-markers-in-ooxml
+- http://plasmasturm.org/log/xpath101/
+- http://zvon.org/comp/r/tut-XPath_1.html
+- https://stackoverflow.com/questions/8181856/xpath-between-two-elements
