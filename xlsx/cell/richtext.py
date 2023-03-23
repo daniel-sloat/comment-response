@@ -15,9 +15,8 @@ from xlsx.ooxml_ns import ns
 class RichText:
     """Provides rich text formatting for cell."""
 
-    def __init__(self, element: _Element, book):
+    def __init__(self, element: _Element):
         self.element = element
-        self._book = book
         self.runs = [
             Run.from_element(el) for el in self.element.xpath("w:t|w:r/w:t", **ns)
         ]
