@@ -38,15 +38,18 @@ class Comment:
 
     @property
     def paragraphs(self) -> Paragraphs:
-        _feed = (
-            Run(txt, run.props)
-            for run in self.runs
-            for txt in re.split("(\n)", re.sub(r"\s+", " ", run.text))
-            if txt
-        )
+        def gen(runs: list[Run]):
+            for run in runs:
+                for txt in re.split("(\n)", re.sub(r"[^\S\n]+", " ", run.text)):
+                    if txt:
+                        yield Run(txt, run.props)
+            yield Run(f" ({self.tag})", None)
+
         _paragraphs = [
             Paragraph(run_group)
-            for key, run_group in groupby(_feed, key=lambda run: run.text != "\n")
+            for key, run_group in groupby(
+                gen(self.runs), key=lambda run: run.text != "\n"
+            )
             if key
         ]
         return Paragraphs(_paragraphs)
