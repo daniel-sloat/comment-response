@@ -1,6 +1,7 @@
 """Cell-level class."""
 
 from reprlib import Repr
+from typing import TYPE_CHECKING
 
 from lxml.etree import _Element
 
@@ -8,12 +9,15 @@ from xlsx.cell.richtext import RichText
 from xlsx.helpers.xl_position import xl_position
 from xlsx.ooxml_ns import ns
 
+if TYPE_CHECKING:
+    from xlsx.sheets.sheet import Sheet
+
 
 class Cell:
     """Representation of cell in OOXML."""
 
-    def __init__(self, element, sheet):
-        self._element: _Element = element
+    def __init__(self, element: _Element, sheet: "Sheet"):
+        self._element = element
         self._sheet = sheet
         self._book = self._sheet._parent._book
         self._sharedstrings = self._book.sharedstrings
@@ -66,7 +70,7 @@ class Cell:
             case "b":  # Boolean (0 or 1)
                 return bool(value_xml)
             case "inlineStr":
-                return RichText(self._element.xpath("w:is", **ns), self._book)
+                return RichText(self._element.xpath("w:is", **ns))
             case "s":
                 return self._sharedstrings[int(value_xml)]
             case "e":
