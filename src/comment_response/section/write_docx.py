@@ -1,8 +1,5 @@
 """Write comment-response section."""
 
-from pathlib import Path
-
-import docx
 from docx.document import Document
 from docx.enum.base import EnumValue
 from docx.enum.style import WD_STYLE_TYPE
@@ -168,27 +165,3 @@ def recursive_write(
                 # Recursive case (only writes heading)
                 document.add_heading(heading.title, level=outline_level)
                 recursive_write(document, data, config, outline_level)
-
-
-class CommentSection:
-    """CommentSection object for writing comment-response section to docx."""
-
-    def __init__(self, sheet, **config):
-        self._sheet = sheet
-        self.config: dict = config
-        self.outline_level: int = self.config["doc"]["custom"]["outline_level_start"]
-        self.group_records = GroupRecords(self._sheet, **config)
-        self.filename = Path(self.config["doc"]["savename"])
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}(sheetname={self._sheet._name})"
-
-    def write(self):
-        doc: Document = docx.Document()
-        style_maker(doc, "Comments")
-        style_maker(doc, "Response", left_indent=0.5, next_style="Response")
-        recursive_write(
-            doc, self.group_records.group(), self.config, self.outline_level
-        )
-        self.filename.parent.mkdir(exist_ok=True)
-        doc.save(self.filename)

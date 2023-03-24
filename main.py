@@ -1,8 +1,8 @@
 """Main script"""
 
-from comment_response.write_docx import CommentSection
-from comment_response import toml_config
-from xlsx_rich_text.workbook import Workbook
+import tomllib
+from comment_response import Section
+from xlsx_rich_text import Workbook
 
 # Final steps:
 # - Implement remaining config (remove_all_double_spaces)
@@ -13,10 +13,11 @@ from xlsx_rich_text.workbook import Workbook
 
 
 def main():
-    config = toml_config.load()
+    with open("config.toml", "rb") as f:
+        config = tomllib.load(f)
     book = Workbook(config["filename"])
     sheet = book.sheet(config["sheetname"], header_row=config["other"]["header_row"])
-    section = CommentSection(sheet, **config)
+    section = Section(sheet, **config)
     print(section.group_records)
 
 
