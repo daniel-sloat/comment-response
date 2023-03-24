@@ -5,3 +5,4 @@ output/
 config.toml
 *.log
 *.ipynb
+.env
