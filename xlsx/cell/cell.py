@@ -11,15 +11,16 @@ from xlsx.ooxml_ns import ns
 
 if TYPE_CHECKING:
     from xlsx.sheets.sheet import Sheet
+    from xlsx.sheets.newdatasheet import NewSheet
 
 
 class Cell:
     """Representation of cell in OOXML."""
 
-    def __init__(self, element: _Element, sheet: "Sheet"):
+    def __init__(self, element: _Element, sheet: "NewSheet"):
         self._element = element
         self._sheet = sheet
-        self._book = self._sheet._parent._book
+        self._book = self._sheet.workbook
         self._sharedstrings = self._book.sharedstrings
         self._styles = self._book.styles
 
