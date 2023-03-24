@@ -1,0 +1,29 @@
+[project]
+authors = [
+  {name = "Daniel Sloat", email = "daniel.sloat@arb.ca.gov"},
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "python-docx",
+  "xlsx-rich-text @ git+https://github.com/djsloat/xlsx_rich_text",
+]
+description = "Create comment and response section."
+license = {file = "LICENSE"}
+name = "comment-response"
+readme = "README.md"
+requires-python = ">=3.11"
+version = "2023.03.24"
+
+[project.optional-dependencies]
+dev = [
+  "black",
+  "ipykernel",
+]
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=62.0.0", "wheel"]
