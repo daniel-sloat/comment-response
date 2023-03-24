@@ -1,8 +1,8 @@
 """Main script"""
 
 from comment_response.write_docx import CommentSection
-from config import toml_config
-from xlsx.workbook import Workbook
+from comment_response import toml_config
+from xlsx_rich_text.workbook import Workbook
 
 # Final steps:
 # - Implement remaining config (remove_all_double_spaces)
@@ -16,8 +16,8 @@ def main():
     config = toml_config.load()
     book = Workbook(config["filename"])
     sheet = book.sheet(config["sheetname"], header_row=config["other"]["header_row"])
-    # section = CommentSection(sheet, **config)
-    # section.write()
+    section = CommentSection(sheet, **config)
+    print(section.group_records)
 
 
 if __name__ == "__main__":
