@@ -6,3 +6,5 @@ config.toml
 *.log
 *.ipynb
 .env
+.vscode
+*.egg-info
