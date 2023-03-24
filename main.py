@@ -5,7 +5,7 @@ from config import toml_config
 from xlsx.workbook import Workbook
 
 # Final steps:
-# - Implement remaining config (remove_all_double_spaces, header_row)
+# - Implement remaining config (remove_all_double_spaces)
 # - Implement tagging system for comments
 # - Fix automark to use tagging system
 # - Implement logging
@@ -15,9 +15,9 @@ from xlsx.workbook import Workbook
 def main():
     config = toml_config.load()
     book = Workbook(config["filename"])
-    # print(book.datasheet(config["sheetname"], header_row=1))
-    sheet = book.datasheets[config["sheetname"]]
-    CommentSection(sheet, **config).write()
+    sheet = book.sheet(config["sheetname"], header_row=config["other"]["header_row"])
+    # section = CommentSection(sheet, **config)
+    # section.write()
 
 
 if __name__ == "__main__":
