@@ -63,7 +63,7 @@ class NewDataSheet(NewSheet):
         return None
 
     def row(self, row: str) -> dict[tuple[int, int], DataCell]:
-        xpath = "w:sheetData/w:row[@r=$_r]/w:c"
+        xpath = "w:sheetData/w:row[@r=$_r+1]/w:c"
         elements = self.sheet_xml.xpath(xpath, _r=row, **ns)
         return {cell.position: cell for cell in [DataCell(el, self) for el in elements]}
 
