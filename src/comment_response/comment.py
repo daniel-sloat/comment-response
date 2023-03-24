@@ -4,8 +4,9 @@ import re
 from itertools import groupby
 
 from comment_response.paragraph import Paragraph, Paragraphs
-from xlsx.cell.run import Run
-from xlsx.sheets.record import Record
+
+from xlsx_rich_text.cell.run import Run
+from xlsx_rich_text.sheets.record import Record
 
 
 class Comment:

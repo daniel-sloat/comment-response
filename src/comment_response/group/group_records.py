@@ -1,7 +1,7 @@
 """Grouping for datasheet records."""
 
 from comment_response.group.recursive_group import group_records
-from xlsx.sheets.newdatasheet import NewDataSheet
+from xlsx_rich_text.sheets.newdatasheet import NewDataSheet
 
 
 class GroupRecords:

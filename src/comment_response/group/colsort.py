@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from itertools import groupby
 
-from xlsx.sheets.record import Record
+from xlsx_rich_text.sheets.record import Record
 
 
 @dataclass(frozen=True, order=True)

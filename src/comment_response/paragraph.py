@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from xlsx.cell.run import Run
+from xlsx_rich_text.cell.run import Run
 
 
 @dataclass

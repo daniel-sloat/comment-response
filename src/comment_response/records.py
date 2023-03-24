@@ -2,7 +2,7 @@
 
 from comment_response.comment import Comments
 from comment_response.response import Response
-from xlsx.sheets.record import Record
+from xlsx_rich_text.sheets.record import Record
 
 
 class Records:
