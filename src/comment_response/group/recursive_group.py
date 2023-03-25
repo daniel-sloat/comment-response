@@ -3,15 +3,17 @@ Recursive function with key sort to sort and group records.
 """
 
 from itertools import groupby
+from numbers import Number
 from typing import TypeAlias
 
 from comment_response.group.colsort import ColSort
+from xlsx_rich_text.sheets.record import Record
 
 ColumnSort: TypeAlias = tuple[int, str]
 ColumnTuples: TypeAlias = tuple[tuple[str, str], ...]
 
 
-def col_sort(record, columns) -> ColSort:
+def col_sort(record: Record, columns: tuple[int, str]) -> ColSort:
     """Sorts by single key column."""
     number_col, title_col = columns
     title = str(record.col.get(title_col, ""))
@@ -19,10 +21,10 @@ def col_sort(record, columns) -> ColSort:
     return ColSort(num, title)
 
 
-def comment_count_sort(x):
-    if "data" in x:
-        end = len(x["data"]) == 1
-        records = x["data"][0].get("records")
+def comment_count_sort(sort_level) -> Number:
+    if "data" in sort_level:
+        end = len(sort_level["data"]) == 1
+        records = sort_level["data"][0].get("records")
         if records and end:
             return -len(records)
         return 0
@@ -31,7 +33,7 @@ def comment_count_sort(x):
 
 
 # RECURSIVE LIST/DICTIONARY FUNCTION
-def group_records(records, sort_cols, count_sort=False):
+def group_records(records, sort_cols, count_sort=False) -> list[dict]:
     """Recursive sorting and grouping of records using specified columns."""
     lst = []
 
