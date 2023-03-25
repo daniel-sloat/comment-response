@@ -50,7 +50,11 @@ class GroupedRecordsSort:
         self.current_cols, *self.remaining_cols = self.sort_values
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(count={len(self.records)}, sort_values={self.sort_values})"
+        return (
+            f"{self.__class__.__name__}("
+            f"count={len(self.records)},"
+            f"sort_values={self.sort_values})"
+        )
 
     @staticmethod
     def key_sort(record, col_sort) -> ColSort:

@@ -1,8 +1,9 @@
 """Prepare response"""
 
-from comment_response.paragraph import Paragraph, Paragraphs
 from xlsx_rich_text.cell.richtext import RichText
 from xlsx_rich_text.sheets.record import Record
+
+from comment_response.paragraph import Paragraph, Paragraphs
 
 
 class Response:

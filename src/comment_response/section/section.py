@@ -1,7 +1,10 @@
+"""Comment section"""
+
+from pathlib import Path
+
 import docx
 from docx.document import Document
 
-from pathlib import Path
 from comment_response.group.group_records import GroupRecords
 from comment_response.section.write_docx import recursive_write, style_maker
 

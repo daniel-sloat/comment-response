@@ -1,3 +1,5 @@
+"""Paragraph classes"""
+
 from dataclasses import dataclass
 
 from xlsx_rich_text.cell.run import Run
@@ -5,6 +7,8 @@ from xlsx_rich_text.cell.run import Run
 
 @dataclass
 class Paragraph:
+    """Paragraph"""
+
     runs: list[Run]
 
     def __post_init__(self):
@@ -27,6 +31,8 @@ class Paragraph:
 
 @dataclass
 class Paragraphs:
+    """List of Paragraph"""
+
     paragraphs: list[Paragraph]
 
     def __repr__(self):

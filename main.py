@@ -1,8 +1,9 @@
 """Main script"""
 
 import tomllib
-from comment_response import Section
 from xlsx_rich_text import Workbook
+
+from comment_response import Section
 
 # Final steps:
 # - Implement remaining config (remove_all_double_spaces)
@@ -13,8 +14,8 @@ from xlsx_rich_text import Workbook
 
 
 def main():
-    with open("config.toml", "rb") as f:
-        config = tomllib.load(f)
+    with open("config.toml", "rb") as toml:
+        config = tomllib.load(toml)
     book = Workbook(config["filename"])
     sheet = book.sheet(config["sheetname"], header_row=config["other"]["header_row"])
     section = Section(sheet, **config)
