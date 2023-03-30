@@ -1,14 +1,16 @@
+"""Extra functions implemented while trying to get a good recursive data structure."""
+
 from itertools import groupby
 
-from comment_response.group.colsort import ColSort
+from comment_response.group.recursive_group import Heading
 
 
-def key_sort(record, col_sort) -> ColSort:
+def key_sort(record, col_sort) -> Heading:
     """Sorts by single key column. (0, "Text")"""
     number_col, title_col = col_sort
     title = str(record.col.get(title_col, ""))
     num = int(record.col.get(number_col, 0))
-    return ColSort(num, title)
+    return Heading(num, title)
 
 
 # BASIC RECURSIVE FUNCTION, INCLUDES ALL EMPTY TITLES

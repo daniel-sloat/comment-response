@@ -2,26 +2,38 @@
 Recursive function with key sort to sort and group records.
 """
 
+from dataclasses import dataclass
 from itertools import groupby
 from numbers import Number
-from typing import TypeAlias
 
-from comment_response.group.colsort import ColSort
 from xlsx_rich_text.sheets.record import Record
 
-ColumnSort: TypeAlias = tuple[int, str]
-ColumnTuples: TypeAlias = tuple[tuple[str, str], ...]
+
+@dataclass(frozen=True, order=True)
+class Heading:
+    """For column sorting. Displays textual information in repr, but stores custom sort
+    information as descriptor."""
+
+    num: int
+    title: str
+
+    def __bool__(self):
+        return any((bool(self.num), bool(self.title)))
+
+    def __repr__(self):
+        return self.title
 
 
-def col_sort(record: Record, columns: tuple[int, str]) -> ColSort:
-    """Sorts by single key column."""
+def column_sort(record: Record, columns: tuple[int, str]) -> Heading:
+    """Key function to sort by single key column."""
     number_col, title_col = columns
     title = str(record.col.get(title_col, ""))
     num = int(record.col.get(number_col, 0))
-    return ColSort(num, title)
+    return Heading(num, title)
 
 
-def comment_count_sort(sort_level) -> Number:
+def comment_count_sort(sort_level: dict[str, list[dict]]) -> Number:
+    """Key function to sort by comment count."""
     if "data" in sort_level:
         end = len(sort_level["data"]) == 1
         records = sort_level["data"][0].get("records")
@@ -32,29 +44,30 @@ def comment_count_sort(sort_level) -> Number:
         return float("-inf")
 
 
-# RECURSIVE LIST/DICTIONARY FUNCTION
-def group_records(records, sort_cols, count_sort=False) -> list[dict]:
+def group_records(
+    records: list[Record], sort_cols: list[tuple[int, str]], count_sort: bool = False
+) -> list[dict]:
     """Recursive sorting and grouping of records using specified columns."""
-    lst = []
+    group = []
 
     current_cols, *remaining_cols = sort_cols
-    keysort = lambda record: col_sort(record, current_cols)
+    keysort = lambda record: column_sort(record, current_cols)
     records = sorted(records, key=keysort)
 
     for sort_col_value, records in groupby(records, key=keysort):
-        new = {}
+        info = {}
         if sort_col_value:
-            new["heading"] = sort_col_value
+            info["heading"] = sort_col_value
             if remaining_cols:
                 grouped_records = group_records(records, remaining_cols, count_sort)
-                new["data"] = (
+                info["data"] = (
                     sorted(grouped_records, key=comment_count_sort)
                     if count_sort
                     else grouped_records
                 )
             else:
-                new["data"] = [{"records": tuple(records)}]
+                info["data"] = [{"records": tuple(records)}]
         else:
-            new["records"] = tuple(records)
-        lst.append(new)
-    return lst
+            info["records"] = tuple(records)
+        group.append(info)
+    return group

@@ -1,1 +1,1 @@
-from .section.section import Section
+from .section import Section

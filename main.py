@@ -7,8 +7,6 @@ from comment_response import Section
 
 # Final steps:
 # - Implement remaining config (remove_all_double_spaces)
-# - Implement tagging system for comments
-# - Fix automark to use tagging system
 # - Implement logging
 # - Fix typing issues
 
@@ -19,7 +17,8 @@ def main():
     book = Workbook(config["filename"])
     sheet = book.sheet(config["sheetname"], header_row=config["other"]["header_row"])
     section = Section(sheet, **config)
-    print(section.group_records)
+    section.write()
+    section.automark.write()
 
 
 if __name__ == "__main__":
