@@ -45,4 +45,4 @@ class Section:
 
     @property
     def automark(self):
-        return AutoMark(self.records)
+        return AutoMark(self.records, self.config)

@@ -13,14 +13,16 @@ from comment_response.logger.logger import log_write
 class AutoMark:
     """Creates automark table data and writes automark doc."""
 
-    def __init__(self, records: list[Record]):
+    def __init__(self, records: list[Record], config: dict):
         self.records = records
+        self.commenter = config["columns"]["commenter"]
+        self.comment_tag = config["columns"]["comment_tag"]
 
     @property
     def entries(self) -> list[tuple[str, str]]:
         """Entries to be written to AutoMark document."""
         entry = {
-            (str(record.col["Comment ID"]), str(record.col["Commenter Code"]))
+            (str(record.col[self.comment_tag]), str(record.col[self.commenter]))
             for record in self.records
         }
         return sorted(entry)

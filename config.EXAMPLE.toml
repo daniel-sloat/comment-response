@@ -1,24 +1,25 @@
 # COMMENT-RESPONSE SCRIPT CONFIGURATION
 
-automark = 'output/automark.docx'
-filename = 'input/Alex_45 Day_Comments_Ref - Copy.xlsx'
+automark = "output/automark.docx"
+filename = "tests/comments.xlsx"
 header_row = 1
 outline_level = 2
-savename = 'output/section.docx'
-sheetname = 'Comments Database'
+savename = "output/section.docx"
+sheetname = "Comments"
 
 [section.columns]
-comment = 'CommentText'
-comment_tag = 'Comment ID'
-response = 'draft Agency Response'
+comment = "Comment Data"
+comment_tag = "File Name"
+commenter = "Commenter Code"
+response = "Response"
 
 [section.sort]
 by_count = true
-ordered = ["value1", "value2", "value3"]
+ordered = ["","",""]
 title = [
-  "FSOR section heading level 1",
-  "FSOR section heading level 2",
-  "FSOR section heading level 3",
+  "Heading 1",
+  "Heading 2",
+  "Heading 3",
 ]
 
 [section.other.clean]
@@ -26,10 +27,10 @@ clean = true
 trim = true
 
 [section.other.custom]
-comment_intro = 'Comment'
+comment_intro = "Comment"
 comment_intro_every_comment = false
-intro_sep = ': '
-response_intro = 'Response'
+intro_sep = ": "
+response_intro = "Response"
 
 [section.other.quantity]
 indicate_quantity = true
