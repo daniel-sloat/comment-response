@@ -15,7 +15,7 @@ response = "Response"
 
 [section.sort]
 by_count = true
-ordered = ["","",""]
+ordered = []
 title = [
   "Heading 1",
   "Heading 2",
