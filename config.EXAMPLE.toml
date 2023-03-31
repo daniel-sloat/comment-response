@@ -1,111 +1,37 @@
 # COMMENT-RESPONSE SCRIPT CONFIGURATION
 
-# Filename of sheet
-filename = 'tests\comments.xlsx'
-# Sheetname
-sheetname = 'Comments'
-
-[columns]
-# Specify columns to sort and group on. 
-sort = [
-  'Heading 1',
-  'Heading 2',
-  'Heading 3',
-]
-
-# Numbered sort columns for 'worksheet' custom sort. 
-numbered_sort = [
-  'value1',
-  'value2',
-  'value3',
-]
-
-[columns.commentresponse]
-# These are required to be specified. These columns are read and written as
-# rich text (carrying text formatting properties). 
-comment = 'Comment Data'
-response = 'Response'
-
-[columns.other]
-# The key "tag" is required. "tag" is appended to the end of each comment to
-# provide a way of keeping track of comments and their commenter. Comment tags
-# should be a unique text string not found anywhere else in the document if 
-# using these tags to create an index. There must be a tag for every comment.
-tag = 'Commenter Code'
-
-[sort]
-# Specify type of sort.
-#   Options:
-#     No sorting (uses row order, therefore can custom filter in Excel): 'nosort'
-#     Alphabetical (ascending): anything else
-type = ''
-# Specify sorting of lowest-level (where comments and responses are).
-#   Options:
-#     Comment Count (descending): 'count'
-comment_sort = 'count'
-# Where to get sort data from. 
-#   Options:
-#     Use specific columns (specified under numbered sort) in worksheet: 'worksheet'
-#     Use this configuration file and simple custom sorting as follows: 'config'
-sort = 'config'
-# Specify custom sort of level 1. Use empty list [] for no custom sort. If column 
-# doesn't exist, no errors will occur. Headings not listed here will be at the 
-# end and sorted as specified above.
-custom_level_1 = [
-  "Example Heading 1",
-  "Example Heading 2",
-  "Example Heading 3",
-]
-# This is a lump-all of all subheadings past Level 1. This is a good way to 
-# bring certain subheadings (all subheadings) to the first position - like a "General" 
-# category or something. If the lowest-level is sorted by comment count (sort-type, above), then 
-# that will overwrite the lowest-level heading sorting characteristics (as they will be sorted 
-# by comment count).
-custom_level_2 = [
-  "Example Subheading 1",
-  "Example Subheading 2",
-  "Example Subheading 3",
-]
-
-[other]
-# Specify row number containing header. Assumes data starts immediately after.
+automark = 'output/automark.docx'
+filename = 'input/Alex_45 Day_Comments_Ref - Copy.xlsx'
 header_row = 1
-# Specify whether to remove double spaces. Leading and trailing whitespace at the 
-# end of paragraphs is automatically trimmed. (true or false)
-remove_double_spaces = true
+outline_level = 2
+savename = 'output/section.docx'
+sheetname = 'Comments Database'
 
-[doc]
-savename = 'output\CommentResponse.docx'
+[section.columns]
+comment = 'CommentText'
+comment_tag = 'Comment ID'
+response = 'draft Agency Response'
 
-[doc.custom]
-# Specify starting heading level (1 means begin at Heading 1). Only 9
-# levels of headings are allowed.
-outline_level_start = 2
-# Specify whether more than one comment is grouped ("Multiple 
-# Comments: " vs "Comment: ")
-indicate_quantity = true
-single_comment = "Comment: "
-multiple = "Multiple Comments: "
-# Customize text written to document.
-# Comment intros help differentiate between grouped comments. If 'indicate_
-# quantity' is true, then the heading will state "Multiple Comments" or "Comment".
-# However, tf 'indicate_quantity' is false, setting this to false may provide more
-# readibility.
-#   true means the 'comment_intro' will only be written for every comment
-#   false means the 'comment_intro' will only be written for multiple grouped
-#     comments.
-comment_intro_every_comment = false
+[section.sort]
+by_count = true
+ordered = ["value1", "value2", "value3"]
+title = [
+  "FSOR section heading level 1",
+  "FSOR section heading level 2",
+  "FSOR section heading level 3",
+]
+
+[section.other.clean]
+clean = true
+trim = true
+
+[section.other.custom]
 comment_intro = 'Comment'
-# Response intros help identify the response text from the grouped 
-# comments.
-response_intro = 'Response'
-# The separator is between the intro and the comment/response text.
+comment_intro_every_comment = false
 intro_sep = ': '
+response_intro = 'Response'
 
-[index]
-# If an index is not needed or will be added manually, setting these to false
-# will save time. Microsoft Word is needed to mark index entries and append the comment
-# index.
-mark_index_entries = true
-# If mark_index_entries is false, this setting does nothing.
-append_comment_index = true
+[section.other.quantity]
+indicate_quantity = true
+multiple_comments = "Multiple Comments: "
+single_comment = "Comment: "

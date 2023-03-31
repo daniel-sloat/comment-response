@@ -9,9 +9,10 @@ from comment_response.parts.paragraph import Paragraph
 class Response:
     """Prepare response for writing to docx."""
 
-    def __init__(self, records: list[Record], config: dict):
-        self.column = config["columns"]["commentresponse"]["response"]
+    def __init__(self, records: list[Record], response_col: str, clean_config: dict):
+        self.column = response_col
         self.records = [record for record in records if record.col.get(self.column)]
+        self.clean_config = clean_config
 
     @property
     def paragraphs(self) -> list[Paragraph]:
@@ -21,5 +22,5 @@ class Response:
             rich_text: RichText = cell.value
             if rich_text:
                 for paragraph in rich_text.paragraphs:
-                    paras.append(Paragraph(paragraph.runs))
+                    paras.append(Paragraph(paragraph.runs, **self.clean_config))
         return paras

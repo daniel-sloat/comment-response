@@ -20,7 +20,7 @@ class Section:
         self.sheet = sheet
         self.sheetname: str = sheet.sheetname
         self.config: dict = config
-        self.sort = SortRecords(config)
+        self.sort = SortRecords(config["sort"])
 
     @property
     def records(self):

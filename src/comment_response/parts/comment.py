@@ -1,7 +1,6 @@
 """Prepare comments"""
 
 import re
-from dataclasses import dataclass
 from itertools import groupby
 
 from xlsx_rich_text.cell.richtext import RichText
@@ -14,11 +13,13 @@ from comment_response.parts.paragraph import Paragraph
 class Comment:
     """Prepare comment for writing to docx."""
 
-    def __init__(self, record: Record, config: dict):
+    def __init__(
+        self, record: Record, column: str, tag_column: str, clean_config: dict
+    ):
         self.record = record
-        self.config = config
-        self._tag_col: str = config["columns"]["other"]["tag"]
-        self.comment_col: str = config["columns"]["commentresponse"]["comment"]
+        self.column: str = column
+        self.tag_column: str = tag_column
+        self.clean_config = clean_config
 
     def __bool__(self):
         """Returns true if comment has text or has a tag."""
@@ -29,9 +30,12 @@ class Comment:
 
     @property
     def _rich_text(self) -> RichText | None:
-        cell = self.record.col.get(self.comment_col).value
-        if cell:
-            return cell
+        try:
+            text = self.record.col.get(self.column).value
+            if text:
+                return text
+        except AttributeError as exc:
+            raise ValueError(f"Column name '{self.column}' not found.") from exc
 
     @property
     def runs(self) -> list[Run]:
@@ -46,16 +50,19 @@ class Comment:
 
     @property
     def tag(self) -> str:
-        cell = self.record.col.get(self._tag_col)
-        if cell:
-            if cell.value:
-                return str(cell.value)
+        try:
+            text = self.record.col.get(self.tag_column).value
+            if text:
+                return str(text)
+        except AttributeError as exc:
+            raise ValueError(f"Column name '{self.tag_column}' not found.") from exc
 
-    def paragraphs(self, trim: bool = True, clean: bool = True) -> list[Paragraph]:
+    @property
+    def paragraphs(self) -> list[Paragraph]:
         """Group comment runs into paragraphs."""
         paras = []
         keyfunc = lambda run: run.text != "\n"
         for key, runs in groupby(self.runs, key=keyfunc):
             if key:
-                paras.append(Paragraph(list(runs), trim=trim, clean=clean))
+                paras.append(Paragraph(list(runs), **self.clean_config))
         return paras
