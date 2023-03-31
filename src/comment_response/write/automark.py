@@ -7,6 +7,8 @@ from docx.document import Document as _Document
 from docx.table import _Cell
 from xlsx_rich_text.sheets.record import Record
 
+from comment_response.logger.logger import log_write
+
 
 class AutoMark:
     """Creates automark table data and writes automark doc."""
@@ -23,6 +25,7 @@ class AutoMark:
         }
         return sorted(entry)
 
+    @log_write
     def write(self, filename=r"output\automark.docx") -> None:
         """Write AutoMark document."""
         path = Path(filename)

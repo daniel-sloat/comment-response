@@ -5,10 +5,6 @@ from xlsx_rich_text import Workbook
 
 from comment_response import Section
 
-# Final steps:
-# - Implement logging
-# - Fix typing issues
-
 
 def main():
     with open("config.toml", "rb") as toml:
