@@ -1,11 +1,9 @@
 """Adapt formats from XLSX to DOCX"""
 
 from docx.enum.base import EnumValue
-from docx.enum.style import WD_STYLE_TYPE
 from docx.enum.text import WD_UNDERLINE
 from docx.text.run import Run
 
-PARAGRAPH_STYLE: EnumValue = WD_STYLE_TYPE.PARAGRAPH  # pylint: disable=no-member
 DOUBLE_UNDERLINE_STYLE: EnumValue = WD_UNDERLINE.DOUBLE  # pylint: disable=no-member
 
 
