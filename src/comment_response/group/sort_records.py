@@ -1,6 +1,7 @@
 """Grouping for datasheet records."""
 
 
+from dataclasses import dataclass
 from itertools import zip_longest
 
 
@@ -23,3 +24,18 @@ class SortRecords:
     def key(self):
         """Sorting tuple for grouping records."""
         return tuple(zip_longest(self.ordered, self.title, fillvalue=""))
+
+
+@dataclass(frozen=True, order=True)
+class Heading:
+    """For column sorting. Displays textual information in repr, but stores custom sort
+    information as descriptor."""
+
+    num: int
+    title: str
+
+    def __bool__(self):
+        return any((bool(self.num), bool(self.title)))
+
+    def __repr__(self):
+        return self.title

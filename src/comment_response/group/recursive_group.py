@@ -2,26 +2,12 @@
 Recursive function with key sort to sort and group records.
 """
 
-from dataclasses import dataclass
 from itertools import groupby
 from numbers import Number
 
 from xlsx_rich_text.sheets.record import Record
 
-
-@dataclass(frozen=True, order=True)
-class Heading:
-    """For column sorting. Displays textual information in repr, but stores custom sort
-    information as descriptor."""
-
-    num: int
-    title: str
-
-    def __bool__(self):
-        return any((bool(self.num), bool(self.title)))
-
-    def __repr__(self):
-        return self.title
+from comment_response.group.sort_records import Heading
 
 
 def column_sort(record: Record, columns: tuple[int, str]) -> Heading:
