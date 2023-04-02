@@ -13,9 +13,9 @@ def key_sort(record, col_sort) -> Heading:
     return Heading(num, title)
 
 
-# BASIC RECURSIVE FUNCTION, INCLUDES ALL EMPTY TITLES
 def group_records_basic(records, sort_cols):
-    """Recursive sorting and grouping of records using specified columns."""
+    """Recursive sorting and grouping of records using specified columns. Includes
+    all empty titles."""
     new = {}
     current_cols, *remaining_cols = sort_cols
     keysort = lambda record: key_sort(record, current_cols)
@@ -31,10 +31,9 @@ def group_records_basic(records, sort_cols):
     return new
 
 
-# RECURSIVE LIST/DICTIONARY FUNCTION, USING SORT VALUE AS KEY
-# MUST TEST FOR OBJECT TYPE WHILE UNPACKING
 def group_records_type(records, sort_cols):
-    """Recursive sorting and grouping of records using specified columns."""
+    """Recursive sorting and grouping of records using specified columns. While
+    unpacking, test for object type."""
     lst = []
 
     current_cols, *remaining_cols = sort_cols

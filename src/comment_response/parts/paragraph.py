@@ -9,8 +9,9 @@ from xlsx_rich_text.cell.run import Run
 
 @dataclass
 class Paragraph:
-    """Paragraph: a list of runs. The first run is trimmed of leading whitespace and
-    the last run is trimmed of trailing whitespace."""
+    """Paragraph: a list of runs. Optionally allows for cleaning data: 'trim' trims the
+    first run is trimmed of leading whitespace and the last run is trimmed of trailing
+    whitespace; 'clean' replaces more than one space with one space."""
 
     runs: list[Run]
     trim: bool = True
