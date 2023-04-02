@@ -9,7 +9,7 @@ from comment_response import Section
 def main():
     with open("config.toml", "rb") as toml:
         config = tomllib.load(toml)
-        
+
     book = Workbook(config["filename"])
     sheet = book.sheet(config["sheetname"], header_row=config["header_row"])
 
