@@ -1,4 +1,5 @@
 """Logging support functions."""
+
 import functools
 import logging
 from pprint import pformat
