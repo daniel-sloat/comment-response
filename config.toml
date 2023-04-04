@@ -1,0 +1,38 @@
+# COMMENT-RESPONSE SCRIPT CONFIGURATION
+
+automark = "output/automark.docx"
+filename = "tests/comments.xlsx"
+header_row = 1
+outline_level = 2
+savename = "output/section.docx"
+sheetname = "Comments"
+
+[section.columns]
+comment = "Comment Data"
+comment_tag = "File Name"
+commenter = "Commenter Code"
+response = "Response"
+
+[section.sort]
+by_count = true
+ordered = []
+title = [
+  "Heading 1",
+  "Heading 2",
+  "Heading 3",
+]
+
+[section.other.clean]
+clean = true
+trim = true
+
+[section.other.custom]
+comment_intro = "Comment"
+comment_intro_every_comment = false
+intro_sep = ": "
+response_intro = "Response"
+
+[section.other.quantity]
+indicate_quantity = true
+multiple_comments = "Multiple Comments: "
+single_comment = "Comment: "

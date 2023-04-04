@@ -1,0 +1,8 @@
+__pycache__
+.env
+log.log
+*.ipynb
+*.egg-info
+input
+output
+src
