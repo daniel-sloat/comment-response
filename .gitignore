@@ -1,8 +1,10 @@
-__pycache__
-.env
-log.log
+__pycache__/
+env/
+input/
+output/
+config.toml
+*.log
 *.ipynb
+.env
+.vscode
 *.egg-info
-input
-output
-src
