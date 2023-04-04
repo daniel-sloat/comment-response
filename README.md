@@ -34,7 +34,7 @@ A single, formatted comment-response docx file grouped and sorted as specified.
 
 - Run the script in the terminal:  
 
-        python comment_response.py
+        python main.py
 
 - The output file will be placed in the output folder, unless customized in the configuration file.
 
