@@ -1,13 +1,12 @@
 """Write comment-response section."""
 
 from docx.document import Document
-from docx.enum.base import EnumValue
 from docx.enum.style import WD_STYLE_TYPE
 from docx.shared import Inches, Pt
 from docx.styles.style import _ParagraphStyle
 from docx.styles.styles import Styles
 
-PARAGRAPH_STYLE: EnumValue = WD_STYLE_TYPE.PARAGRAPH  # pylint: disable=no-member
+PARAGRAPH_STYLE: tuple[int, str, str] = WD_STYLE_TYPE.PARAGRAPH  # pylint: disable=no-member
 
 
 def create_style(

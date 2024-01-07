@@ -1,10 +1,9 @@
 """Adapt formats from XLSX to DOCX"""
 
-from docx.enum.base import EnumValue
 from docx.enum.text import WD_UNDERLINE
 from docx.text.run import Run
 
-DOUBLE_UNDERLINE_STYLE: EnumValue = WD_UNDERLINE.DOUBLE  # pylint: disable=no-member
+DOUBLE_UNDERLINE_STYLE: tuple[int, str, str] = WD_UNDERLINE.DOUBLE  # pylint: disable=no-member
 
 
 def toggle(value_dict: dict[str:str]) -> bool:
