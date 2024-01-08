@@ -3,7 +3,7 @@
 Creates a formatted docx file using comment and response data from an xlsx spreadsheet. Groups comments for response and organizes according to headings. Tags each comment for tracking and identification.
 
 ## Examples
-Example input can be found in the 'tests' folder. Example output can be found in the 'output' folder.
+Example input can be found in the 'tests' folder. Run the configuration file as-is (after renaming it to config.toml) to run the script on the files in the tests folder to obtain an example output.
 
 ## Input
 An xlsx spreadsheet, with:
