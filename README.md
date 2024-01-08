@@ -30,7 +30,7 @@ A single, formatted comment-response docx file grouped and sorted as specified.
         pip install -r requirements.txt
 
 - Customize configuration file (config.toml) in text-editer:
-  - ***IMPORTANT***: Rename config.SAMPLE.toml to config.toml!
+  - ***IMPORTANT***: Rename config.EXAMPLE.toml to config.toml!
 
 - Run the script in the terminal:  
 
