@@ -8,7 +8,7 @@ Example input can be found in the 'tests' folder. Run the configuration file as-
 ## Input
 An xlsx spreadsheet, with:
 - One comment per row
-- One response per comment *group*. Additional responses will be carried over into the final document.
+- One response per comment *group*. However, additional responses will be carried over into the final document (the additional responses will be combined into one response). 
 - A column that identies the specific document the comment came from (or a special unique id that identifies that specific comment). Each of these comment ids are to appended to the end of each comment when writing document.
 - Headings defined (Excel has a maximum of 9 headings). The hierarchy of headings can contain up to 9 headings (if beginning at heading number 1). *(Two or three headings is more than enough!)*
   - For grouping purposes, heading names are case-sensitive.
