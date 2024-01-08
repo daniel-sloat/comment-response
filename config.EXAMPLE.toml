@@ -1,38 +1,97 @@
+#
 # COMMENT-RESPONSE SCRIPT CONFIGURATION
+#
 
-automark = "output/automark.docx"
+
+# The location of the combined comments/responses spreadsheet.
 filename = "tests/comments.xlsx"
-header_row = 1
-outline_level = 2
-savename = "output/section.docx"
+
+# The sheet name of the spreadsheet containing the comments/responses.
 sheetname = "Comments"
 
+# The header row number of the spreadsheet.
+header_row = 1
+
+# Starting outline (i.e., heading) level.
+outline_level = 2
+
+# Save locations of the comment/response section document.
+savename = "output/section.docx"
+
+# Save location of the AutoMark file (to make an index).
+automark = "output/automark.docx"
+
+
 [section.columns]
+# Specify the columns that contain the relevant data for writing the comment/response
+# document.
+
+# Column name containing comment data.
 comment = "Comment Data"
+
+# Column name containing the comment tag (to keep track of comments).
+# The comment tag refers to a specific document (and document code).
 comment_tag = "File Name"
-commenter = "Commenter Code"
+
+# Column name containing a code to the unique source the comment came from.
+commenter = "Document Code"
+
+# Column name containing the response to the comment(s).
 response = "Response"
 
+
 [section.sort]
+# Specify the columns that contain sorting/heading information.
+
+# Return the comments by the count, descending. (false, true)
 by_count = true
-ordered = []
+
+# Column names for heading titles. Specify as many as needed.
 title = [
   "Heading 1",
   "Heading 2",
   "Heading 3",
 ]
 
+# Column names to sort on, other that the title heading columns. Must be the same 
+# number of columns as 'title'. Optional.
+ordered = []
+
+
 [section.other.clean]
+# Specify whether text should be 'cleaned'.
+
+# Clean text? Cleaning text removes extra spaces. (false, true)
 clean = true
+
+# Trim text? Trimming removes extra whitespace before and after paragraphs. (false, true)
 trim = true
 
+
 [section.other.custom]
+# Specify the beginning text ('intro') of each comment and response.
+
+# Text before comment:
 comment_intro = "Comment"
+
+# Should this text be prepended to every comment, or only comments with more and one comment?
 comment_intro_every_comment = false
-intro_sep = ": "
+
+# Text before every response:
 response_intro = "Response"
 
+# Separator between comment and response intros.
+intro_sep = ": "
+
+
 [section.other.quantity]
+# Specify whether headings should mention whether there are multiple comments or a single comment.
+
+# Indictate quanitity? If true will prepend text to headings.
 indicate_quantity = true
+
+# Text to prepend to headings containing multiple comments (include separator and any whitespace):
 multiple_comments = "Multiple Comments: "
+
+# Text to prepend to headings containing a single comment (include separator and any whitespace):
 single_comment = "Comment: "
