@@ -17,7 +17,8 @@ An xlsx spreadsheet, with:
   - For a very specific customized sort, use the same number of columns as there are for headings, and use numbers (or letters) to specify the sort. Any values that are not filled in are put at the end of the sort group.
 
 ## Output
-A single, formatted comment-response docx file grouped and sorted as specified.
+1)  A formatted comment-response docx file grouped and sorted as specified.
+2)  An automark document to add an index to keep track of comments (https://officemastery.com/word-index-concordance/).
 
 ## How to Use
 
