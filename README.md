@@ -18,7 +18,7 @@ An xlsx spreadsheet, with:
 
 ## Output
 1)  A formatted comment-response docx file grouped and sorted as specified.
-2)  An automark document to add an index to keep track of comments (https://officemastery.com/word-index-concordance/).
+2)  An [automark document](https://officemastery.com/word-index-concordance/) to add an index to keep track of comments.
 
 ## How to Use
 
@@ -37,7 +37,7 @@ An xlsx spreadsheet, with:
 
         python main.py
 
-- The output file will be placed in the output folder, unless customized in the configuration file.
+- The output files will be placed in the output folder, unless customized in the configuration file.
 
 ## Similar Repositories
 
